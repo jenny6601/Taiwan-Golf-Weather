@@ -1,8 +1,12 @@
-<!doctype html>
+<!DOCTYPE html>
+<!DOCTYPE html>
+
+<!DOCTYPE html>
+
 <html lang="zh-Hant">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>台灣高爾夫球場天氣預測V28</title>
+<meta charset="utf-8"/><meta content="width=device-width,initial-scale=1" name="viewport"/>
+<title>台灣高爾夫球場天氣預測 V30 完整版</title>
 <style>
 :root{--bg:#f2f5f7;--card:#fff;--ink:#17212b;--muted:#64748b;--line:#dfe6ec;--green:#126b4c;--blue:#1769aa;--amber:#b7791f;--red:#b42318}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,-apple-system,"Noto Sans TC",sans-serif}
@@ -24,41 +28,28 @@ button{background:var(--green);color:white;border:0;font-weight:700;cursor:point
 .legend{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}.legend span{font-size:12px;padding:4px 8px;border-radius:8px;background:#f8fafc;border:1px solid var(--line)}
 .modelgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}.model{border:1px solid var(--line);border-radius:10px;padding:11px}.model strong{display:block}.model .big{font-size:22px;font-weight:800}.model small{color:var(--muted)}
 canvas{width:100%;height:240px}.sourcegrid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}.source{border:1px solid var(--line);border-radius:10px;padding:10px}.source a{color:#145c47;font-weight:700;text-decoration:none}.source small{display:block;color:var(--muted);margin-top:3px}
-.quick-course-wrap{margin-top:14px;padding:12px;border:1px solid #cfe4d9;border-radius:12px;background:#f5fbf7}.quick-course-title{font-weight:800;color:#155b43;margin-bottom:9px}.quick-course-buttons{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}.quick-course-buttons button{min-height:44px;border:1px solid #9bcbb4;border-radius:9px;background:#fff;color:#155b43;font-weight:800;font-size:15px;cursor:pointer}.quick-course-buttons button.quick-selected{background:#126b4c;color:#fff}@media(max-width:600px){.quick-course-buttons{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.quick-course-wrap{margin-top:14px;padding:12px;border:1px solid #cfe4d9;border-radius:12px;background:#f5fbf7}.quick-course-title{font-weight:800;color:#155b43;margin-bottom:9px}.quick-course-buttons{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}.quick-course-buttons button{min-height:52px;border:1px solid #9bcbb4;border-radius:9px;background:#fff;color:#155b43;font-weight:800;font-size:15px;cursor:pointer}.quick-course-buttons button.quick-selected{background:#126b4c;color:#fff}@media(max-width:600px){.quick-course-buttons{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.quick-course-buttons button{min-height:52px;font-size:16px;padding:9px 5px}}
 .course-list{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;max-height:420px;overflow:auto;margin-top:8px}.course-item{border:1px solid var(--line);border-radius:10px;padding:9px;background:#fff}.course-item button{padding:7px 9px;text-align:left;background:#f1f7f4;color:#155b43;font-weight:700}.course-item small{display:block;color:var(--muted);margin-top:4px}.course-item .tag{display:inline-block;font-size:11px;border-radius:99px;background:#eef2ff;color:#3949ab;padding:2px 6px;margin-left:4px}.course-item .extra-tag{background:#fff7ed;color:#9a3412}.radar{width:100%;max-height:390px;object-fit:contain;background:#eaf0f4;border-radius:10px}.keyrow{display:grid;grid-template-columns:2fr auto;gap:10px;align-items:end}
 details{border:1px solid var(--line);border-radius:10px;padding:10px;margin:8px 0}summary{font-weight:700;cursor:pointer}
 .v26-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px}.v26-stat{border:1px solid var(--line);border-radius:10px;padding:11px;background:#f8fafc}.v26-stat b{display:block;font-size:20px}
 @media(max-width:700px){.v26-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 footer{color:var(--muted);font-size:12px;padding:18px 0}
 @media(max-width:850px){.course-list{grid-template-columns:repeat(2,minmax(0,1fr))}.controls,.grid2,.keyrow{grid-template-columns:1fr}.cards{grid-template-columns:repeat(2,1fr)}.modelgrid,.sourcegrid{grid-template-columns:repeat(2,1fr)}}
-/* V11：手機逐時表格優先顯示五項核心天氣資訊 */
+/* V30 修正：單一完整逐時表；核心六欄在左，其餘欄位依序在右 */
+.hourly-table-wrap{overflow-x:auto!important;overflow-y:auto;max-width:100%;-webkit-overflow-scrolling:touch;}
+#hourlyForecastTable{width:max-content;min-width:1320px;table-layout:auto;font-size:13px;}
+#hourlyForecastTable th,#hourlyForecastTable td{white-space:nowrap;padding:9px 10px;}
+#hourlyForecastTable th:nth-child(-n+6){background:#edf6f1;}
+#hourlyForecastTable td:nth-child(-n+6){background:#fbfefc;}
+#hourlyForecastTable th:nth-child(3),#hourlyForecastTable td:nth-child(3),#hourlyForecastTable th:nth-child(4),#hourlyForecastTable td:nth-child(4){min-width:112px;}
+#hourlyForecastTable th:nth-child(2),#hourlyForecastTable td:nth-child(2){min-width:108px;}
+#hourlyForecastTable th:nth-child(n+7),#hourlyForecastTable td:nth-child(n+7){min-width:94px;}
 @media(max-width:600px){
-  .tablewrap{overflow-x:hidden}
-  #hourRowsTable, .tablewrap table{
-    width:100%; min-width:0; table-layout:fixed; font-size:11px;
-  }
-  .tablewrap th,.tablewrap td{
-    padding:7px 2px; white-space:normal; overflow-wrap:anywhere;
-    line-height:1.25; text-align:center;
-  }
-  .tablewrap th{font-size:10px}
-  .tablewrap td:first-child,.tablewrap th:first-child{text-align:center}
-  /* 保留：時間、天氣、降雨機率、雨量、氣溫、體感 */
-  .tablewrap th:nth-child(n+7),
-  .tablewrap td:nth-child(n+7){display:none}
-  .tablewrap th:nth-child(1),.tablewrap td:nth-child(1){width:13%}
-  .tablewrap th:nth-child(2),.tablewrap td:nth-child(2){width:19%}
-  .tablewrap th:nth-child(3),.tablewrap td:nth-child(3){width:18%}
-  .tablewrap th:nth-child(4),.tablewrap td:nth-child(4){width:17%}
-  .tablewrap th:nth-child(5),.tablewrap td:nth-child(5){width:16.5%}
-  .tablewrap th:nth-child(6),.tablewrap td:nth-child(6){width:16.5%}
-  .tablewrap .wxcell{display:flex;justify-content:center;gap:2px;flex-wrap:wrap}
-  .tablewrap .wxemoji{font-size:18px}
-  .tablewrap .rainpill{padding:2px 4px;gap:2px;justify-content:center}
-  .tablewrap .rainamount{display:inline-flex;justify-content:center;gap:2px}
-}
-@media(min-width:601px){
-  .tablewrap th,.tablewrap td{white-space:nowrap}
+  .hourly-table-wrap{overflow-x:auto!important;}
+  #hourlyForecastTable{min-width:1320px;font-size:12px;}
+  #hourlyForecastTable th,#hourlyForecastTable td{padding:9px 9px;}
+  #hourlyForecastTable th:nth-child(-n+6){background:#e8f3ed;}
+  #hourlyForecastTable .wxemoji{font-size:19px}
 }
 
 
@@ -116,92 +107,120 @@ footer{color:var(--muted);font-size:12px;padding:18px 0}
 @media(max-width:600px){#coursePickerPanel .course-list{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}#coursePickerPanel .course-item{padding:6px}#coursePickerPanel .course-item button{min-height:50px;padding:8px 5px;font-size:14px}}
 
 .provider-panel{margin-top:14px}.provider-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:12px}.provider-card{border:1px solid var(--line);border-radius:11px;padding:12px;background:#fff}.provider-card strong{display:block;font-size:16px}.provider-status{font-size:12px;color:#64748b;margin:6px 0}.provider-links{display:flex;gap:10px;flex-wrap:wrap;font-size:13px}.provider-pill{display:inline-block;border-radius:999px;padding:3px 8px;background:#fff7e6;color:#8a5a00;font-size:11px;font-weight:700}.provider-table-wrap{overflow-x:auto}.provider-table{width:100%;border-collapse:collapse;font-size:13px}.provider-table th,.provider-table td{border-bottom:1px solid var(--line);padding:7px;text-align:right;white-space:nowrap}.provider-table th:first-child,.provider-table td:first-child{text-align:left}.provider-note{background:#f4f8fb;border-radius:9px;padding:10px;font-size:13px;color:#475569;line-height:1.6}@media(max-width:600px){.provider-grid{grid-template-columns:1fr}}
-</style>
+@media(min-width:601px){#mobileDetailWrap{display:none!important}} @media(max-width:600px){#mobileDetailWrap .tablewrap{overflow-x:auto!important}#mobileDetailWrap table{min-width:760px!important;table-layout:auto!important;font-size:12px!important}#mobileDetailWrap th,#mobileDetailWrap td{white-space:nowrap!important;padding:8px 7px!important}}</style>
 <style>@media(max-width:600px){section.mobile-hide-sources{display:block!important}}</style>
+
+<style id="v30-mobile-core-fit">
+/* 手機：核心六欄（時間＋五項天氣資訊）完整置於同一螢幕；延伸欄位接續於右側 */
+@media (max-width:600px){
+  .hourly-table-wrap{width:100%;max-width:100%;overflow-x:auto!important;overflow-y:visible;-webkit-overflow-scrolling:touch;}
+  #hourlyForecastTable{width:100%!important;min-width:100%!important;table-layout:fixed!important;font-size:10px!important;}
+  #hourlyForecastTable th,#hourlyForecastTable td{box-sizing:border-box;padding:7px 2px!important;white-space:normal!important;overflow-wrap:anywhere;line-height:1.2;text-align:center;vertical-align:middle;}
+  /* 六欄總寬約等於手機內容寬；其他欄位固定接在右側，可橫向滑動 */
+  #hourlyForecastTable th:nth-child(1),#hourlyForecastTable td:nth-child(1){width:calc((100vw - 48px)*.115);min-width:35px;}
+  #hourlyForecastTable th:nth-child(2),#hourlyForecastTable td:nth-child(2){width:calc((100vw - 48px)*.175);min-width:44px;}
+  #hourlyForecastTable th:nth-child(3),#hourlyForecastTable td:nth-child(3){width:calc((100vw - 48px)*.17);min-width:43px;}
+  #hourlyForecastTable th:nth-child(4),#hourlyForecastTable td:nth-child(4){width:calc((100vw - 48px)*.18);min-width:45px;}
+  #hourlyForecastTable th:nth-child(5),#hourlyForecastTable td:nth-child(5){width:calc((100vw - 48px)*.17);min-width:43px;}
+  #hourlyForecastTable th:nth-child(6),#hourlyForecastTable td:nth-child(6){width:calc((100vw - 48px)*.19);min-width:48px;}
+  #hourlyForecastTable th:nth-child(n+7),#hourlyForecastTable td:nth-child(n+7){width:82px;min-width:82px;max-width:82px;}
+  #hourlyForecastTable .wxcell{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;font-size:9px;white-space:normal;}
+  #hourlyForecastTable .wxemoji{font-size:17px;line-height:1.1;}
+  #hourlyForecastTable .rainpill{display:inline-flex;justify-content:center;gap:1px;padding:2px 3px;font-size:9px;white-space:nowrap;}
+  #hourlyForecastTable .rainamount{display:inline-flex;justify-content:center;gap:1px;font-size:9px;white-space:normal;}
+  #hourlyForecastTable th:nth-child(-n+6){position:sticky;top:0;background:#e8f3ed;}
+  #hourlyForecastTable td:nth-child(-n+6){background:#fbfefc;}
+  .hourly-table-wrap{border-radius:8px;}
+  .card:has(>#hourlyForecastTable),.card:has(.hourly-table-wrap){padding:8px;}
+}
+</style>
 </head>
 <body>
-<header><div class="wrap"><h1>⛳ 台灣高爾夫球場天氣預測V28</h1><p>台灣球場資料庫・縣市篩選・手動座標・氣溫／體感溫度逐時分析</p></div></header>
+<header><div class="wrap"><h1>⛳ 台灣高爾夫球場天氣預測V30 完整逐時欄位修正版</h1><p>台灣球場資料庫・縣市篩選・手動座標・氣溫／體感溫度逐時分析</p></div></header>
 <main class="wrap">
-
-
-
 <section class="panel" id="coursePickerPanel">
- <h2 style="margin:0 0 10px">選擇日期、縣市，再按球場</h2>
- <label for="courseDate">預報日期</label>
- <input id="courseDate" type="date" style="max-width:320px">
- <label for="countySelect" style="display:block;margin-top:12px">選擇縣市</label>
- <select id="countySelect" style="width:100%;max-width:320px;padding:10px;border:1px solid #cbd5e1;border-radius:10px;background:#fff">
-  <option value="">請選擇縣市</option>
- </select>
- <div class="muted" id="status" style="margin:8px 0 4px">尚未載入氣象資料。</div>
- <div class="muted" id="courseAutoStatus" style="margin:4px 0 12px">共57座球場。先選日期，再選縣市，最後點選球場按鈕，即以固定座標載入當日天氣。</div>
- <div id="courseList" class="course-list" aria-label="57座高爾夫球場"></div>
- <div class="quick-course-wrap"><div class="quick-course-title">⭐ 常用球場（快速選擇）</div><div id="quickCourseButtons" class="quick-course-buttons"><button type="button" data-quick-course="東方">東方</button><button type="button" data-quick-course="礁溪">礁溪</button><button type="button" data-quick-course="美麗華">美麗華</button><button type="button" data-quick-course="林口">林口</button><button type="button" data-quick-course="大溪">大溪</button></div></div>
-</section>
+<h2 style="margin:0 0 10px">選擇日期、縣市，再按球場</h2>
+<label for="courseDate">預報日期</label>
+<input id="courseDate" style="max-width:320px" type="date"/>
+<label for="countySelect" style="display:block;margin-top:12px">選擇縣市</label>
+<select id="countySelect" style="width:100%;max-width:320px;padding:10px;border:1px solid #cbd5e1;border-radius:10px;background:#fff">
+<option value="">請選擇縣市</option>
+</select>
+<div class="muted" id="status" style="margin:8px 0 4px">尚未載入氣象資料。</div>
+<div class="muted" id="courseAutoStatus" style="margin:4px 0 12px">共57座球場。先選日期，再選縣市，最後點選球場按鈕，即以固定座標載入當日天氣。</div>
+<div aria-label="57座高爾夫球場" class="course-list" id="courseList"></div>
+<div class="quick-course-wrap"><div class="quick-course-title">⭐ 常用球場（快速選擇）</div><div class="quick-course-buttons" id="quickCourseButtons"><button data-quick-course="東方" type="button">東方</button><button data-quick-course="礁溪" type="button">礁溪</button><button data-quick-course="美麗華" type="button">美麗華</button><button data-quick-course="林口" type="button">林口</button><button data-quick-course="大溪" type="button">大溪</button></div></div>
+</section><section class="card"><h3>① 逐時天氣預報（06:00–18:00）</h3><div class="legend"><span>☀️ 晴朗</span><span>🌤️ 多雲</span><span>🌧️ 下雨</span><span>⛈️ 雷雨</span><span>💧 低降雨機率</span><span>☔ 高降雨機率</span></div><div class="muted" id="tableNote">固定列出06:00至18:00共13個時段。手機同一畫面完整顯示時間、天氣、降雨機率、雨量、氣溫及體感；風速、陣風、風向、濕度、雲量、UV及打球參考分數接續排列在右側，可左右滑動查看。已過去但API沒有回傳的時段會標示「無資料」，不會以推測值補齊。</div><div class="tablewrap hourly-table-wrap"><table id="hourlyForecastTable"><thead><tr><th>🕒 時間</th><th>🌤️ 天氣</th><th>☔ 機率<br>%</th><th>🌧️ 雨量<br>mm</th><th>🌡️ 氣溫<br>°C</th><th>🥵 體感<br>°C</th><th>風速 km/h</th><th>陣風 km/h</th><th>風向</th><th>濕度</th><th>雲量</th><th>UV</th><th>打球參考分數</th></tr></thead><tbody id="hourRows"><tr><td colspan="13">尚無資料</td></tr></tbody></table></div></section><section class="card rain-chart-card"><h3>② 每小時降雨機率圖（%）</h3><canvas height="240" id="rainChart" width="600"></canvas><p class="muted">以系集成員逐時降雨量大於 0.1 mm 的比例估算；這是模式機率，尚非台灣球場歷史校準後的真實機率。</p></section><section class="card rain-chart-card"><h3>③ 每小時預報雨量圖（mm）</h3><canvas height="240" id="rainAmountChart" width="600"></canvas><p class="muted">顯示五個確定性模式逐時雨量中位數；模式範圍另作不確定性參考。</p></section>
+<section class="card">
+<h3>④ 逐小時氣溫與體感溫度（°C）</h3>
+<canvas height="260" id="tempChart" width="900"></canvas>
+<div class="legend"><span style="color:#1769aa;font-weight:800">🔵 氣溫（2公尺高度）</span><span class="feel-label">🔴 體感溫度（Apparent temperature）</span></div>
+<div class="muted">比較實際預報氣溫與人體感受的估算溫度；體感溫度會受濕度、風速及日照等因素影響，並非人體核心溫度。</div>
+</section><section class="card" id="rainFocusPanel"><h3>降雨專項摘要｜V30</h3><p class="muted">降雨機率改由系集成員統計（每小時降雨量 &gt;0.1 mm 的成員比例）；若系集 API 無法取得，退回 Open-Meteo Best Match 的系集降雨機率。雨量則以五個確定性模式逐時中位數為主，並顯示模式範圍與時段累積量。</p><div class="cards" id="rainMetrics"><div class="metric"><small>06–18時降雨機率最高值</small><strong>—</strong></div><div class="metric"><small>06–18時預報累積雨量</small><strong>—</strong></div><div class="metric"><small>雨量最大時段</small><strong>—</strong></div><div class="metric"><small>連續4小時累積雨量</small><strong>—</strong></div><div class="metric"><small>降雨資料來源</small><strong>—</strong></div></div><div class="status" id="rainMethodStatus">尚未取得降雨資料。</div><div class="hint">注意：系集成員比例是模式機率，不等於已用台灣球場歷史資料校準的真實機率；雨量中位數與模式上界並列，避免只看平均值低估局部強降雨。</div></section>
 <section class="panel">
- <div class="row"><div><h2 id="locname" style="margin:0">宜蘭縣礁溪鄉礁溪高爾夫球場</h2><div id="coords" class="muted">搜尋球場後顯示實際座標</div></div><span class="pill">V28 多來源擴充架構（五模式核心）</span></div>
+<div class="row"><div><h2 id="locname" style="margin:0">宜蘭縣礁溪鄉礁溪高爾夫球場</h2><div class="muted" id="coords">搜尋球場後顯示實際座標</div></div><span class="pill">V28 多來源擴充架構（五模式核心）</span></div>
 </section>
 <section class="cards" id="metrics">
- <div class="metric"><small>當日最高降雨機率</small><strong>—</strong></div>
- <div class="metric"><small>當日預報雨量</small><strong>—</strong></div>
- <div class="metric"><small>平均氣溫</small><strong>—</strong></div>
- <div class="metric"><small>平均體感溫度</small><strong>—</strong></div>
- <div class="metric"><small>平均風速</small><strong>—</strong></div>
- <div class="metric"><small>最大陣風</small><strong>—</strong></div>
+<div class="metric"><small>當日最高降雨機率</small><strong>—</strong></div>
+<div class="metric"><small>當日預報雨量</small><strong>—</strong></div>
+<div class="metric"><small>平均氣溫</small><strong>—</strong></div>
+<div class="metric"><small>平均體感溫度</small><strong>—</strong></div>
+<div class="metric"><small>平均風速</small><strong>—</strong></div>
+<div class="metric"><small>最大陣風</small><strong>—</strong></div>
 </section>
-<section class="card"><h3>逐時天氣預報（06:00–18:00）</h3><div class="legend"><span>☀️ 晴朗</span><span>🌤️ 多雲</span><span>🌧️ 下雨</span><span>⛈️ 雷雨</span><span>💧 低降雨機率</span><span>☔ 高降雨機率</span></div><div class="muted" id="tableNote">固定列出06:00至18:00共13個時段。手機版優先顯示時間、天氣、降雨機率、雨量、氣溫及體感；其他氣象欄位仍保留於桌機版。已過去但API沒有回傳的時段會標示「無資料」，不會以推測值補齊。</div><div class="tablewrap"><table><thead><tr><th>時間</th><th>天氣狀況</th><th>💧 降雨機率</th><th>🌧️ 雨量</th><th>氣溫 °C</th><th>體感 °C</th><th>風速 km/h</th><th>陣風 km/h</th><th>風向</th><th>濕度</th><th>雲量</th><th>UV</th><th>打球參考分數</th></tr></thead><tbody id="hourRows"><tr><td colspan="13">尚無資料</td></tr></tbody></table></div></section>
+<section class="card" id="rainValidationPanel"><h3>降雨準確度驗證中心｜V30</h3>
+<p class="muted">將歷史逐時預報與同一球場附近的實際雨量觀測逐筆配對，計算降雨機率 Brier Score、雨量 MAE／RMSE／Bias。此區不預設或捏造準確率；尚未匯入觀測配對資料時，會明確顯示「尚無驗證樣本」。</p>
+<div class="cards" id="validationMetrics"><div class="metric"><small>驗證樣本數</small><strong>—</strong></div><div class="metric"><small>降雨機率 Brier Score</small><strong>—</strong></div><div class="metric"><small>雨量 MAE</small><strong>—</strong></div><div class="metric"><small>雨量 RMSE</small><strong>—</strong></div><div class="metric"><small>雨量 Bias</small><strong>—</strong></div></div>
+<div class="grid2" style="margin-top:10px"><label>球場篩選<select id="validationCourse"><option value="all">全部試行球場</option><option>礁溪</option><option>大溪</option><option>東方</option><option>美麗華</option><option>林口</option></select></label><label>預報提前天數<select id="validationLead"><option value="all">全部</option><option value="1">1天</option><option value="2">2天</option><option value="3">3天</option><option value="5">5天</option><option value="7">7天</option></select></label></div>
+<div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:12px 0"><input accept=".csv,text/csv" id="validationFile" style="max-width:100%" type="file"/><button class="secondary" id="downloadValidationTemplate" type="button">下載驗證CSV範本</button><button class="secondary" id="clearValidation" type="button">清除資料</button></div>
+<div class="status" id="validationStatus">尚未載入驗證資料。請匯入逐時預報與實際觀測配對 CSV；目前不會將模型共識當成準確率。</div>
+<div class="table-wrap" id="validationBreakdown" style="margin-top:10px"><p class="hint">資料欄位：course,date,lead_days,hour,model,pred_prob,forecast_mm,observed_mm。降雨事件定義為實際逐時雨量 &gt;0.1 mm；機率採 0–100。雨量單位 mm。</p></div>
+<div class="hint">重要：Open-Meteo Historical Forecast／Previous Runs 可取得過去曾發布的預報，用於保留預報時效；實際雨量應以 CWA 雨量站觀測配對，不能拿 ERA5 再分析值冒充球場實測。CWA 測站與球場有距離及地形差異，報表需記錄測站代碼及距離，且不同球場分開評估。</div>
+</section>
 <section class="card" id="golfForecastPanel">
- <h3>⛳ 高爾夫專用氣象預報參考</h3>
- <p class="muted">整合球場座標預報、Golfability／Playability、四小時球局窗口及風對擊球的影響。若網站沒有公開資料 API，僅提供外部交叉核對，不會假稱已自動抓取其即時數值。</p>
- <div class="modelgrid">
-  <div class="model"><strong>GolfWeather.com</strong><div class="big">球場座標預報</div><small>全球球場資料庫，以球場經緯度提供預報。</small><p><a href="https://golfweather.com/" target="_blank" rel="noopener">開啟球場預報 ↗</a></p></div>
-  <div class="model"><strong>GolfWeather.app</strong><div class="big">Playability 0–10</div><small>溫度、風、降雨機率、濕度及 UV；公開說明資料源為 Open-Meteo。</small><p><a href="https://golfweather.app/" target="_blank" rel="noopener">開啟高爾夫預報 ↗</a></p></div>
-  <div class="model"><strong>Weather4Golf</strong><div class="big">球局窗口</div><small>最佳開球時段、降雨時序、風向對球路影響；使用 Apple WeatherKit。</small><p><a href="https://apps.apple.com/us/app/golf-weather-weather4golf/id6757702271" target="_blank" rel="noopener">查看服務介紹 ↗</a></p></div>
-  <div class="model"><strong>Golfer WX</strong><div class="big">Golfability 1–10</div><small>風、溫度、雨、UV、濕度及最佳開球時段；目前以美國球場為主。</small><p><a href="https://www.golferwx.com/" target="_blank" rel="noopener">開啟服務 ↗</a></p></div>
-  <div class="model"><strong>Golf Weather Intelligence</strong><div class="big">四小時球局評分</div><small>降雨、風、溫度、雷雨、雲量及日照；公開說明預報基礎為 Open-Meteo。</small><p><a href="https://golfweatheriq.com/" target="_blank" rel="noopener">開啟服務 ↗</a></p></div>
- </div>
- <div class="hint">資料獨立性：GolfWeather.app 與 Golf Weather Intelligence 公開說明均使用 Open-Meteo，適合參考其高爾夫評分邏輯，但不應當成額外獨立氣象模型重複加權。Golfer WX 主要覆蓋美國；Weather4Golf 未提供可供本網頁直接呼叫的公開 API。</div>
- <div id="golfScoreSummary" class="status">取得球場預報後，顯示本系統的高爾夫適打度分析。</div>
+<h3>⛳ 高爾夫專用氣象預報參考</h3>
+<p class="muted">整合球場座標預報、Golfability／Playability、四小時球局窗口及風對擊球的影響。若網站沒有公開資料 API，僅提供外部交叉核對，不會假稱已自動抓取其即時數值。</p>
+<div class="modelgrid">
+<div class="model"><strong>GolfWeather.com</strong><div class="big">球場座標預報</div><small>全球球場資料庫，以球場經緯度提供預報。</small><p><a href="https://golfweather.com/" rel="noopener" target="_blank">開啟球場預報 ↗</a></p></div>
+<div class="model"><strong>GolfWeather.app</strong><div class="big">Playability 0–10</div><small>溫度、風、降雨機率、濕度及 UV；公開說明資料源為 Open-Meteo。</small><p><a href="https://golfweather.app/" rel="noopener" target="_blank">開啟高爾夫預報 ↗</a></p></div>
+<div class="model"><strong>Weather4Golf</strong><div class="big">球局窗口</div><small>最佳開球時段、降雨時序、風向對球路影響；使用 Apple WeatherKit。</small><p><a href="https://apps.apple.com/us/app/golf-weather-weather4golf/id6757702271" rel="noopener" target="_blank">查看服務介紹 ↗</a></p></div>
+<div class="model"><strong>Golfer WX</strong><div class="big">Golfability 1–10</div><small>風、溫度、雨、UV、濕度及最佳開球時段；目前以美國球場為主。</small><p><a href="https://www.golferwx.com/" rel="noopener" target="_blank">開啟服務 ↗</a></p></div>
+<div class="model"><strong>Golf Weather Intelligence</strong><div class="big">四小時球局評分</div><small>降雨、風、溫度、雷雨、雲量及日照；公開說明預報基礎為 Open-Meteo。</small><p><a href="https://golfweatheriq.com/" rel="noopener" target="_blank">開啟服務 ↗</a></p></div>
+</div>
+<div class="hint">資料獨立性：GolfWeather.app 與 Golf Weather Intelligence 公開說明均使用 Open-Meteo，適合參考其高爾夫評分邏輯，但不應當成額外獨立氣象模型重複加權。Golfer WX 主要覆蓋美國；Weather4Golf 未提供可供本網頁直接呼叫的公開 API。</div>
+<div class="status" id="golfScoreSummary">取得球場預報後，顯示本系統的高爾夫適打度分析。</div>
 </section>
 <section class="card mobile-hide-models">
- <div class="row"><h3 style="margin:0">五組氣象模型比較</h3><span class="muted">同一座標、同一日期、同一時段</span></div>
- <div id="modelCards" class="modelgrid" style="margin-top:12px"><div class="model">尚未取得模型資料</div></div>
- <p class="muted">模型：ECMWF IFS、NOAA GFS、DWD ICON、JMA GSM、加拿大 GEM。各模型由 Open-Meteo 提供統一介面；不是五家獨立氣象網站的觀測，也不代表模型在當地均有相同解析度。</p>
+<div class="row"><h3 style="margin:0">五組氣象模型比較</h3><span class="muted">同一座標、同一日期、同一時段</span></div>
+<div class="modelgrid" id="modelCards" style="margin-top:12px"><div class="model">尚未取得模型資料</div></div>
+<p class="muted">模型：ECMWF IFS、NOAA GFS、DWD ICON、JMA GSM、加拿大 GEM。各模型由 Open-Meteo 提供統一介面；不是五家獨立氣象網站的觀測，也不代表模型在當地均有相同解析度。</p>
 </section>
 <section class="card provider-panel" id="commercialProviderPanel">
- <h3>四家外部氣象服務｜V28 API 整合</h3>
- <p class="muted">本區與五個 Open-Meteo 數值模式分開呈現。尚未設定 API Key 時不會顯示虛構預報；取得授權並由 GitHub Actions／後端產生標準化資料後，才會顯示各家逐時資料。外部服務在完成歷史回測前，不納入五模型中位數。</p>
- <div class="provider-grid">
-  <div class="provider-card"><strong>Windy Point Forecast</strong><span class="provider-pill">免費測試資料不可上線</span><div class="provider-status" id="windyProviderStatus">尚未設定正式 API；Trial 僅供開發測試，回傳資料隨機擾動。</div><div class="provider-links"><a href="https://api.windy.com/point-forecast/pricing" target="_blank" rel="noopener">方案與價格</a><a href="https://api.windy.com/" target="_blank" rel="noopener">申請 API Key</a></div></div>
-  <div class="provider-card"><strong>meteoblue Weather API</strong><span class="provider-pill">優先申請免費試用</span><div class="provider-status" id="meteoblueProviderStatus">尚未設定 API Key；官方 Free Weather API 提供一年、10 million credits，依資料包扣點。</div><div class="provider-links"><a href="https://docs.meteoblue.com/en/weather-apis/free-weather-api/overview" target="_blank" rel="noopener">免費 API 說明</a><a href="https://business.meteoblue.com/products/weather-apis/free-weather-api" target="_blank" rel="noopener">申請入口</a></div></div>
-  <div class="provider-card"><strong>AccuWeather Core API</strong><span class="provider-pill">免費試用有期限</span><div class="provider-status" id="accuweatherProviderStatus">尚未設定 API Key；官方 Free Core 為 14 天試用、每日 500 次呼叫，之後依方案付費。</div><div class="provider-links"><a href="https://developer.accuweather.com/documentation/overview" target="_blank" rel="noopener">方案與價格</a><a href="https://developer.accuweather.com/" target="_blank" rel="noopener">申請 API Key</a></div></div>
-  <div class="provider-card"><strong>Foreca Weather API</strong><span class="provider-pill">免費但限非商業用途</span><div class="provider-status" id="forecaProviderStatus">尚未設定 API Key；Freemium 每日 2,000 次呼叫，限個人、學校及研究等非商業用途。</div><div class="provider-links"><a href="https://business.foreca.com/weather-api/free-weather-api" target="_blank" rel="noopener">免費方案</a><a href="https://developer.foreca.com/" target="_blank" rel="noopener">API 文件</a></div></div>
- </div>
- <div class="provider-note" style="margin-top:12px"><b>資料安全：</b>API Key 不可放在 HTML、GitHub Pages 前端或公開 Repository。請放在 GitHub Repository → Settings → Secrets and variables → Actions。預定 Secret 名稱：<code>METEOBLUE_API_KEY</code>、<code>ACCUWEATHER_API_KEY</code>、<code>FORECA_API_KEY</code>、<code>WINDY_API_KEY</code>。Windy Trial 不可作正式預報；免費優先時先不啟用 Windy 生產資料。</div>
- <div id="providerCacheStatus" class="status" style="margin-top:10px">外部服務資料：尚未載入快取。未設定 API 或尚未執行後端時，V28 五模式仍正常運作。</div>
- <div id="providerComparison" class="provider-table-wrap"></div>
+<h3>四家外部氣象服務｜V28 API 整合</h3>
+<p class="muted">本區與五個 Open-Meteo 數值模式分開呈現。尚未設定 API Key 時不會顯示虛構預報；取得授權並由 GitHub Actions／後端產生標準化資料後，才會顯示各家逐時資料。外部服務在完成歷史回測前，不納入五模型中位數。</p>
+<div class="provider-grid">
+<div class="provider-card"><strong>Windy Point Forecast</strong><span class="provider-pill">免費測試資料不可上線</span><div class="provider-status" id="windyProviderStatus">尚未設定正式 API；Trial 僅供開發測試，回傳資料隨機擾動。</div><div class="provider-links"><a href="https://api.windy.com/point-forecast/pricing" rel="noopener" target="_blank">方案與價格</a><a href="https://api.windy.com/" rel="noopener" target="_blank">申請 API Key</a></div></div>
+<div class="provider-card"><strong>meteoblue Weather API</strong><span class="provider-pill">優先申請免費試用</span><div class="provider-status" id="meteoblueProviderStatus">尚未設定 API Key；官方 Free Weather API 提供一年、10 million credits，依資料包扣點。</div><div class="provider-links"><a href="https://docs.meteoblue.com/en/weather-apis/free-weather-api/overview" rel="noopener" target="_blank">免費 API 說明</a><a href="https://business.meteoblue.com/products/weather-apis/free-weather-api" rel="noopener" target="_blank">申請入口</a></div></div>
+<div class="provider-card"><strong>AccuWeather Core API</strong><span class="provider-pill">免費試用有期限</span><div class="provider-status" id="accuweatherProviderStatus">尚未設定 API Key；官方 Free Core 為 14 天試用、每日 500 次呼叫，之後依方案付費。</div><div class="provider-links"><a href="https://developer.accuweather.com/documentation/overview" rel="noopener" target="_blank">方案與價格</a><a href="https://developer.accuweather.com/" rel="noopener" target="_blank">申請 API Key</a></div></div>
+<div class="provider-card"><strong>Foreca Weather API</strong><span class="provider-pill">免費但限非商業用途</span><div class="provider-status" id="forecaProviderStatus">尚未設定 API Key；Freemium 每日 2,000 次呼叫，限個人、學校及研究等非商業用途。</div><div class="provider-links"><a href="https://business.foreca.com/weather-api/free-weather-api" rel="noopener" target="_blank">免費方案</a><a href="https://developer.foreca.com/" rel="noopener" target="_blank">API 文件</a></div></div>
+</div>
+<div class="provider-note" style="margin-top:12px"><b>資料安全：</b>API Key 不可放在 HTML、GitHub Pages 前端或公開 Repository。請放在 GitHub Repository → Settings → Secrets and variables → Actions。預定 Secret 名稱：<code>METEOBLUE_API_KEY</code>、<code>ACCUWEATHER_API_KEY</code>、<code>FORECA_API_KEY</code>、<code>WINDY_API_KEY</code>。Windy Trial 不可作正式預報；免費優先時先不啟用 Windy 生產資料。</div>
+<div class="status" id="providerCacheStatus" style="margin-top:10px">外部服務資料：尚未載入快取。未設定 API 或尚未執行後端時，V28 五模式仍正常運作。</div>
+<div class="provider-table-wrap" id="providerComparison"></div>
 </section>
-<section class="card" id="v27ConsensusPanel"><h3>V28 多模型整合與不確定性</h3><p class="muted">主表採五組模型逐時中位數整合；模型分歧以模型間範圍呈現。此為即時多模型共識，尚非經歷史回測校準的機率預報。</p><div class="v26-grid" id="v26Stats"><div class="v26-stat">整合模型<b>—</b></div><div class="v26-stat">降雨機率分歧<b>—</b></div><div class="v26-stat">氣溫分歧<b>—</b></div><div class="v26-stat">陣風分歧<b>—</b></div></div><div id="v26Interpretation" class="status">選擇球場後顯示模型共識與分歧。</div></section>
+<section class="card" id="v27ConsensusPanel"><h3>V30 降雨機率與雨量驗證中心</h3><p class="muted">主表採五組模型逐時中位數整合；模型分歧以模型間範圍呈現。此為即時多模型共識，尚非經歷史回測校準的機率預報。</p><div class="v26-grid" id="v26Stats"><div class="v26-stat">整合模型<b>—</b></div><div class="v26-stat">降雨機率分歧<b>—</b></div><div class="v26-stat">氣溫分歧<b>—</b></div><div class="v26-stat">陣風分歧<b>—</b></div></div><div class="status" id="v26Interpretation">選擇球場後顯示模型共識與分歧。</div></section>
 <section class="grid2">
- <div class="card mobile-hide-wind"><h3>逐小時風速／陣風（km/h）</h3><canvas id="windChart" width="900" height="260"></canvas><div class="muted">平均風速與陣風。陣風明顯高於平均風速時，擊球穩定性較差。</div></div>
- <div class="card"><h3>逐小時降雨機率（%）</h3><canvas id="rainChart" width="600" height="260"></canvas><div class="muted">降雨機率採最佳可用模型；雨量另列於明細。</div></div>
+<div class="card mobile-hide-wind"><h3>逐小時風速／陣風（km/h）</h3><canvas height="260" id="windChart" width="900"></canvas><div class="muted">平均風速與陣風。陣風明顯高於平均風速時，擊球穩定性較差。</div></div>
 </section>
-<section class="card">
- <h3>逐小時氣溫與體感溫度（°C）</h3>
- <canvas id="tempChart" width="900" height="260"></canvas>
- <div class="legend"><span style="color:#1769aa;font-weight:800">🔵 氣溫（2公尺高度）</span><span class="feel-label">🔴 體感溫度（Apparent temperature）</span></div>
- <div class="muted">比較實際預報氣溫與人體感受的估算溫度；體感溫度會受濕度、風速及日照等因素影響，並非人體核心溫度。</div>
-</section>
-
-<section class="card mobile-hide-tee"><h3>最佳開球時段（連續4小時）</h3><div id="teeAdvice" class="muted">取得資料後依雨、風、陣風及體感計算。這是規則式參考分數，不是官方安全預警。</div></section>
+<section class="card mobile-hide-tee"><h3>最佳開球時段（連續4小時）</h3><div class="muted" id="teeAdvice">取得資料後依雨、風、陣風及體感計算。這是規則式參考分數，不是官方安全預警。</div></section>
 <section class="grid2">
- <div class="card mobile-hide-radar"><div class="row"><h3 style="margin:0">即時降雨雷達</h3><a href="https://www.rainviewer.com/" target="_blank" rel="noopener">RainViewer ↗</a></div><p class="muted">顯示球場附近雷達影像。RainViewer 公開API主要提供過去雷達影像，不等同未來降雨預測。</p><img id="radarImg" class="radar" alt="RainViewer 雷達影像" src=""><div id="radarStatus" class="muted">搜尋球場後載入雷達影像。</div></div>
- <div class="card mobile-hide-cwa"><h3>中央氣象署資料（選用）</h3><p class="muted">CWA開放資料需要個人授權碼。授權碼只在本次瀏覽器頁面使用，不會上傳到你的 GitHub 程式碼。</p><div class="keyrow"><div><label for="cwaKey">CWA API 授權碼</label><input id="cwaKey" type="password" placeholder="貼上 CWA Open Data API 授權碼"></div><button id="cwaBtn" class="secondary">查詢宜蘭鄉鎮預報</button></div><div id="cwaStatus" class="status">尚未查詢。若未填授權碼，其他模型仍可正常使用。</div><div id="cwaResult" class="muted"></div><p class="muted"><a href="https://opendata.cwa.gov.tw/" target="_blank" rel="noopener">申請中央氣象署開放資料授權碼 ↗</a></p></div>
+<div class="card mobile-hide-radar"><div class="row"><h3 style="margin:0">即時降雨雷達</h3><a href="https://www.rainviewer.com/" rel="noopener" target="_blank">RainViewer ↗</a></div><p class="muted">顯示球場附近雷達影像。RainViewer 公開API主要提供過去雷達影像，不等同未來降雨預測。</p><img alt="RainViewer 雷達影像" class="radar" id="radarImg" src=""/><div class="muted" id="radarStatus">搜尋球場後載入雷達影像。</div></div>
+<div class="card mobile-hide-cwa"><h3>中央氣象署資料（選用）</h3><p class="muted">CWA開放資料需要個人授權碼。授權碼只在本次瀏覽器頁面使用，不會上傳到你的 GitHub 程式碼。</p><div class="keyrow"><div><label for="cwaKey">CWA API 授權碼</label><input id="cwaKey" placeholder="貼上 CWA Open Data API 授權碼" type="password"/></div><button class="secondary" id="cwaBtn">查詢宜蘭鄉鎮預報</button></div><div class="status" id="cwaStatus">尚未查詢。若未填授權碼，其他模型仍可正常使用。</div><div class="muted" id="cwaResult"></div><p class="muted"><a href="https://opendata.cwa.gov.tw/" rel="noopener" target="_blank">申請中央氣象署開放資料授權碼 ↗</a></p></div>
 </section>
 <section class="card mobile-hide-sources"><h3>氣象來源資料庫（57個）</h3><p class="muted">V28 將原始57筆來源逐筆建立整合狀態。狀態標示代表本頁實際使用方式，不代表網站品質排名；外部參考網站不會被假稱為已自動抓取。</p><div id="sources"></div>
-<div id="v27SourceRegistry" class="v27-registry"></div></section>
-<section class="card mobile-hide-quality"><h3>資料品質、球場搜尋來源與使用限制</h3><ul class="muted"><li>本版球場資料庫內建57座球場地址；選取球場及日期後，以該地址向 OpenStreetMap Nominatim 地理編碼取得座標，再呼叫 Open-Meteo 預報。若地址無法定位，不使用行政區中心點代替。</li><li>OpenStreetMap Nominatim 於使用者選取球場及日期後執行單次地址定位；不做批次請求，遵守服務使用政策及資料來源標示要求。OpenStreetMap 資料採 ODbL 授權。</li><li>V26 以五組模型逐時中位數作主表，並列模型間最大分歧；這是模型共識指標，不是經歷史回測驗證的準確率或校準機率。多模型差異越大，預報不確定性越高；尤其台灣複雜地形、季風及局部陣雨情境，不宜只看單一模型。</li><li>本版逐一查詢 ECMWF IFS、NOAA GFS、DWD ICON、JMA GSM、加拿大 GEM 五組模型，主表以逐時中位數整合；模型來源有不同解析度、更新週期及系統性誤差，且並非完全統計獨立。模型覆蓋範圍、解析度及更新時間不同。</li><li>降雨機率、累積雨量、平均風速及陣風是不同變數，不能互相替代。</li><li>RainViewer雷達免費API適用個人／教育用途，需標示來源，且不保證服務可用性。</li><li>CWA API需授權碼；本版採使用者自行輸入，若瀏覽器跨域限制阻擋，需改用後端代理，不能將授權碼公開放在GitHub。</li><li>預報分數不代表球場可開放或安全。雷電、豪雨、強風警報及球場公告優先；聽到雷聲或有雷電警示時應立即停止戶外活動並依球場指示避難。</li><li>Open-Meteo免費API適用非商業使用；商用或高流量部署請先確認授權及服務條款。</li></ul><p><a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap attribution</a> ｜ <a href="https://nominatim.org/release-docs/latest/api/Search/" target="_blank" rel="noopener">Nominatim搜尋文件</a> ｜ <a href="https://open-meteo.com/en/docs/geocoding-api" target="_blank" rel="noopener">Open-Meteo地理編碼文件</a> ｜ <a href="https://open-meteo.com/en/docs" target="_blank" rel="noopener">Open-Meteo預報文件</a> ｜ <a href="https://www.rainviewer.com/api.html" target="_blank" rel="noopener">RainViewer API文件</a> ｜ <a href="https://opendata.cwa.gov.tw/devManual/description" target="_blank" rel="noopener">CWA API文件</a></p></section>
-<footer>台灣高爾夫球場天氣預測V28｜全台57球場・57氣象來源整合管理｜06:00–18:00逐時預報｜資料可能延遲或缺漏，請以官方警特報、即時觀測及球場公告為準。</footer>
+<div class="v27-registry" id="v27SourceRegistry"></div></section>
+<section class="card mobile-hide-quality"><h3>資料品質、球場搜尋來源與使用限制</h3><ul class="muted"><li>本版球場資料庫內建57座球場地址；選取球場及日期後，以該地址向 OpenStreetMap Nominatim 地理編碼取得座標，再呼叫 Open-Meteo 預報。若地址無法定位，不使用行政區中心點代替。</li><li>OpenStreetMap Nominatim 於使用者選取球場及日期後執行單次地址定位；不做批次請求，遵守服務使用政策及資料來源標示要求。OpenStreetMap 資料採 ODbL 授權。</li><li>V29 降雨機率獨立使用系集成員頻率（每小時&gt;0.1 mm），系集API不可用時退回Best Match系集機率；此仍非以台灣57球場歷史觀測完成校準的真實機率。雨量以五個確定性模式逐時中位數呈現，並列模式範圍。多模型差異越大，預報不確定性越高；尤其台灣複雜地形、季風及局部陣雨情境，不宜只看單一模型。</li><li>本版逐一查詢 ECMWF IFS、NOAA GFS、DWD ICON、JMA GSM、加拿大 GEM 五組模型，氣溫、風等以逐時中位數整合；雨量以逐時中位數及最小–最大範圍呈現；模型來源有不同解析度、更新週期及系統性誤差，且並非完全統計獨立。模型覆蓋範圍、解析度及更新時間不同。</li><li>降雨機率、累積雨量、平均風速及陣風是不同變數，不能互相替代。</li><li>RainViewer雷達免費API適用個人／教育用途，需標示來源，且不保證服務可用性。</li><li>CWA API需授權碼；本版採使用者自行輸入，若瀏覽器跨域限制阻擋，需改用後端代理，不能將授權碼公開放在GitHub。</li><li>預報分數不代表球場可開放或安全。雷電、豪雨、強風警報及球場公告優先；聽到雷聲或有雷電警示時應立即停止戶外活動並依球場指示避難。</li><li>Open-Meteo免費API適用非商業使用；商用或高流量部署請先確認授權及服務條款。</li></ul><p><a href="https://www.openstreetmap.org/copyright" rel="noopener" target="_blank">OpenStreetMap attribution</a> ｜ <a href="https://nominatim.org/release-docs/latest/api/Search/" rel="noopener" target="_blank">Nominatim搜尋文件</a> ｜ <a href="https://open-meteo.com/en/docs/geocoding-api" rel="noopener" target="_blank">Open-Meteo地理編碼文件</a> ｜ <a href="https://open-meteo.com/en/docs" rel="noopener" target="_blank">Open-Meteo預報文件</a> ｜ <a href="https://open-meteo.com/en/docs/ensemble-api" rel="noopener" target="_blank">Open-Meteo系集API文件</a> ｜ <a href="https://www.rainviewer.com/api.html" rel="noopener" target="_blank">RainViewer API文件</a> ｜ <a href="https://opendata.cwa.gov.tw/devManual/description" rel="noopener" target="_blank">CWA API文件</a></p></section>
+<footer>台灣高爾夫球場天氣預測V30 完整逐時欄位修正版｜全台57球場・降雨機率／雨量驗證與校正｜06:00–18:00逐時預報｜資料可能延遲或缺漏，請以官方警特報、即時觀測及球場公告為準。</footer>
 </main>
 <script>
 
@@ -1046,7 +1065,8 @@ const modelDefs=[
  ["JMA GSM","jma_seamless"],
  ["Canada GEM","gem_seamless"]
 ];
-const hourlyVars="temperature_2m,relative_humidity_2m,apparent_temperature,precipitation_probability,precipitation,weather_code,wind_speed_10m,wind_gusts_10m,wind_direction_10m,cloud_cover,uv_index";
+// 確定性模式逐時欄位：雨量與溫度／風場分開取值；降雨機率由系集API獨立計算。
+const hourlyVars="temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,weather_code,wind_speed_10m,wind_gusts_10m,wind_direction_10m,cloud_cover,uv_index";
 function wxIcon(code){if(code>=95)return "⛈️";if(code>=80)return "🌦️";if(code>=61)return "🌧️";if(code>=51)return "🌦️";if(code>=45)return "🌫️";if(code===0)return "☀️";if(code<=3)return "⛅";return "🌤️";}
 function wx(code){if(code>=95)return "雷雨";if(code>=80)return "陣雨";if(code>=61)return "降雨";if(code>=51)return "毛毛雨";if(code>=45)return "有霧";if(code===0)return "晴朗";if(code<=3)return "多雲";return "天氣變化";}
 function score(rain,wind,gust,feel){let v=100-(rain||0)*0.55-Math.max(0,(wind||0)-12)*1.2-Math.max(0,(gust||0)-22)*0.8-Math.max(0,Math.abs((feel??24)-24)-7)*2;return Math.max(0,Math.min(100,Math.round(v)));}
@@ -1109,15 +1129,40 @@ function extract(data,date){
   if(!times[i].startsWith(date+"T"))continue;
   const hour=Number(times[i].slice(11,13));if(hour<6||hour>18)continue;
   const get=k=>h[k]?.[i]??null;
-  out.push({time:times[i].slice(11,16),available:true,temp:get("temperature_2m"),feel:get("apparent_temperature"),rain:get("precipitation_probability"),mm:get("precipitation"),code:get("weather_code"),wind:get("wind_speed_10m"),gust:get("wind_gusts_10m"),dir:get("wind_direction_10m"),rh:get("relative_humidity_2m"),cloud:get("cloud_cover"),uv:get("uv_index")});
+  out.push({time:times[i].slice(11,16),available:true,temp:get("temperature_2m"),feel:get("apparent_temperature"),rain:null,mm:get("precipitation"),code:get("weather_code"),wind:get("wind_speed_10m"),gust:get("wind_gusts_10m"),dir:get("wind_direction_10m"),rh:get("relative_humidity_2m"),cloud:get("cloud_cover"),uv:get("uv_index")});
  }
  return out;
 }
+async function getRainProbability(lat,lon,date){
+ // Calculate a probability within each ensemble system first, then give each system equal weight.
+ // This avoids allowing the ensemble with more members to dominate the combined probability.
+ const models=[['ECMWF IFS ENS','ecmwf_ifs025'],['NOAA GFS ENS','gfs_seamless'],['DWD ICON EPS','icon_seamless']];
+ const results=await Promise.allSettled(models.map(async ([label,model])=>{
+  const url=`https://ensemble-api.open-meteo.com/v1/ensemble?latitude=${lat}&longitude=${lon}&hourly=precipitation&models=${encodeURIComponent(model)}&timezone=Asia%2FTaipei&forecast_days=16`;
+  const r=await fetch(url);if(!r.ok)throw Error(label+' HTTP '+r.status);const d=await r.json(),h=d.hourly||{},times=h.time||[];
+  const keys=Object.keys(h).filter(k=>/^precipitation_member\d+$/i.test(k));
+  if(keys.length<10)throw Error(label+' 系集成員欄位不足');
+  const out={};times.forEach((t,i)=>{if(!t.startsWith(date+'T'))return;const hour=Number(t.slice(11,13));if(hour<6||hour>18)return;const vals=keys.map(k=>h[k]?.[i]).filter(v=>v!==null&&v!==undefined&&Number.isFinite(Number(v))).map(Number);if(vals.length)out[t.slice(11,16)]={prob:vals.filter(v=>v>0.1).length/vals.length*100,members:vals.length};});
+  return {label,keys:keys.length,out};
+ }));
+ const systems=results.filter(x=>x.status==='fulfilled').map(x=>x.value);
+ const combined={};
+ for(const sys of systems){for(const [time,v] of Object.entries(sys.out)){(combined[time]??=[]).push(v.prob);}}
+ const rows={};for(const [time,probs] of Object.entries(combined)){if(probs.length)rows[time]={prob:Math.round(probs.reduce((a,b)=>a+b,0)/probs.length),members:probs.length,source:'系集系統等權整合'};}
+ if(Object.keys(rows).length)return {rows,source:'系集系統等權整合',detail:`成功 ${systems.length}/3 組系集：${systems.map(x=>x.label+' '+x.keys+'成員').join('、')}；先計算各系集內 >0.1 mm 成員比例，再對系集等權平均`};
+ // Official Best Match precipitation_probability is ensemble-derived (about 30 simulations).
+ const u=`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&hourly=precipitation_probability&timezone=Asia%2FTaipei&forecast_days=16`;
+ const r=await fetch(u);if(!r.ok)throw Error('系集及Best Match機率服務均不可用');const d=await r.json(),h=d.hourly||{},fallback={};
+ (h.time||[]).forEach((t,i)=>{if(!t.startsWith(date+'T'))return;const hour=Number(t.slice(11,13));if(hour<6||hour>18)return;const v=h.precipitation_probability?.[i];if(v!==null&&v!==undefined)fallback[t.slice(11,16)]={prob:Number(v),members:null,source:'Open-Meteo Best Match 系集機率'};});
+ if(!Object.keys(fallback).length)throw Error('Best Match 未回傳所選日期的逐時降雨機率');
+ return {rows:fallback,source:'Best Match 系集機率',detail:'系集成員API未取得有效資料，改用Open-Meteo Best Match的系集降雨機率（約30組模擬）'};
+}
+function amountRangeHTML(row){const n=row.mm;if(n===null||n===undefined)return rainAmountHTML(null);const lo=row.spreads?.mmMin,hi=row.spreads?.mmMax;const base=rainAmountHTML(n);return lo===undefined||hi===undefined?base:`<span title="五模式雨量範圍 ${Number(lo).toFixed(1)}–${Number(hi).toFixed(1)} mm">${base}<small style="display:block;color:#64748b;font-size:10px">範圍 ${Number(lo).toFixed(1)}–${Number(hi).toFixed(1)}</small></span>`;}
 function median(values){const a=values.filter(v=>v!==null&&v!==undefined&&Number.isFinite(Number(v))).map(Number).sort((x,y)=>x-y);if(!a.length)return null;const m=Math.floor(a.length/2);return a.length%2?a[m]:(a[m-1]+a[m])/2;}
 function spread(values){const a=values.filter(v=>v!==null&&v!==undefined&&Number.isFinite(Number(v))).map(Number);return a.length>=2?Math.max(...a)-Math.min(...a):null;}
 function circularMean(values){const a=values.filter(v=>v!==null&&v!==undefined&&Number.isFinite(Number(v))).map(Number);if(!a.length)return null;let x=0,y=0;a.forEach(v=>{x+=Math.cos(v*Math.PI/180);y+=Math.sin(v*Math.PI/180)});return (Math.atan2(y,x)*180/Math.PI+360)%360;}
-function consensusRows(modelRows){const names=Object.keys(modelRows),times=(modelRows[names[0]]||[]).map(x=>x.time);return times.map(time=>{const rs=names.map(n=>modelRows[n].find(x=>x.time===time)).filter(Boolean),get=k=>median(rs.map(x=>x[k])),codes=rs.map(x=>x.code).filter(x=>x!==null);let code=null;if(codes.length){const counts={};codes.forEach(v=>counts[v]=(counts[v]||0)+1);code=Number(Object.keys(counts).sort((a,b)=>counts[b]-counts[a])[0]);}return {time,available:rs.length>0,temp:get('temp'),feel:get('feel'),rain:get('rain'),mm:get('mm'),code,wind:get('wind'),gust:get('gust'),dir:circularMean(rs.map(x=>x.dir)),rh:get('rh'),cloud:get('cloud'),uv:get('uv'),modelCount:rs.length,spreads:{rain:spread(rs.map(x=>x.rain)),temp:spread(rs.map(x=>x.temp)),gust:spread(rs.map(x=>x.gust))}};});}
-// V28: 外部服務只讀取後端／GitHub Actions 產生的標準化快取，不在瀏覽器暴露 API Key。
+function consensusRows(modelRows){const names=Object.keys(modelRows),times=(modelRows[names[0]]||[]).map(x=>x.time);return times.map(time=>{const rs=names.map(n=>modelRows[n].find(x=>x.time===time)).filter(Boolean),get=k=>median(rs.map(x=>x[k])),codes=rs.map(x=>x.code).filter(x=>x!==null);let code=null;if(codes.length){const counts={};codes.forEach(v=>counts[v]=(counts[v]||0)+1);code=Number(Object.keys(counts).sort((a,b)=>counts[b]-counts[a])[0]);}const amounts=rs.map(x=>x.mm).filter(v=>v!==null&&v!==undefined&&Number.isFinite(Number(v))).map(Number);return {time,available:rs.length>0,temp:get('temp'),feel:get('feel'),rain:null,mm:get('mm'),code,wind:get('wind'),gust:get('gust'),dir:circularMean(rs.map(x=>x.dir)),rh:get('rh'),cloud:get('cloud'),uv:get('uv'),modelCount:rs.length,spreads:{rain:null,mmMin:amounts.length?Math.min(...amounts):undefined,mmMax:amounts.length?Math.max(...amounts):undefined,temp:spread(rs.map(x=>x.temp)),gust:spread(rs.map(x=>x.gust))}};});}
+// V29: 外部服務只讀取後端／GitHub Actions 產生的標準化快取，不在瀏覽器暴露 API Key。
 // 快取格式範例見 v28-provider-cache.schema.json；外部服務尚未經回測前，不混入五模式中位數。
 async function loadV28ProviderCache(courseName,date){
  const status=$("providerCacheStatus"),target=$("providerComparison");
@@ -1159,27 +1204,32 @@ async function loadForecast(p,date){
  if(!names.length)throw Error("五組模型均未取得資料。請檢查網路、日期是否在預報範圍內，或 Open-Meteo 服務是否暫時不可用。");
  let base=consensusRows(active.modelRows);
  if(!base.length)throw Error("所選日期沒有06:00–18:00逐時資料。");
+ let rainProbInfo;try{rainProbInfo=await getRainProbability(p.lat,p.lon,date);base=base.map(x=>({...x,rain:rainProbInfo.rows[x.time]?.prob??null,rainMembers:rainProbInfo.rows[x.time]?.members??null}));}catch(e){rainProbInfo={source:'不可用',detail:'降雨機率服務未回傳資料：'+e.message};base=base.map(x=>({...x,rain:null}));}
  active.rows=base;
  const valid=base.filter(x=>x.available),avg=k=>{const a=valid.map(x=>x[k]).filter(v=>v!==null);return a.length?a.reduce((z,v)=>z+v,0)/a.length:null;},mx=k=>{const a=valid.map(x=>x[k]).filter(v=>v!==null);return a.length?Math.max(...a):null;};
  const fmt=(v,d=1)=>v===null||v===undefined?"—":Number(v).toFixed(d);
- $("metrics").innerHTML=[["最高降雨機率",fmt(mx("rain"),0)+"%"],["預報累積雨量",fmt(valid.reduce((z,x)=>z+(x.mm||0),0))+" mm"],["平均氣溫",fmt(avg("temp"))+" °C"],["平均體感溫度",fmt(avg("feel"))+" °C"],["平均風速",fmt(avg("wind"))+" km/h"],["最大陣風",fmt(mx("gust"))+" km/h"]].map(([a,b])=>`<div class="metric"><small>${a}</small><strong class="${a==='平均體感溫度'?'feel-temp':''}">${b}</strong></div>`).join("");
- $("hourRows").innerHTML=base.map(x=>`<tr><td><b>${x.time}</b></td><td><span class="wxcell"><span class="wxemoji">${wxIcon(x.code)}</span>${wx(x.code)}</span></td><td>${rainProbHTML(x.rain)}</td><td>${rainAmountHTML(x.mm)}</td><td>${fmt(x.temp)}</td><td><span class="feel-temp">${fmt(x.feel)}</span></td><td>${fmt(x.wind)}</td><td>${fmt(x.gust)}</td><td>${dir(x.dir)} ${x.dir??"—"}${x.dir===null?"":"°"}</td><td>${x.rh??"—"}%</td><td>${x.cloud??"—"}%</td><td>${fmt(x.uv)}</td><td class="${cls(score(x.rain,x.wind,x.gust,x.feel))}">${score(x.rain,x.wind,x.gust,x.feel)}/100</td></tr>`).join("");
+ $("metrics").innerHTML=[["最高降雨機率",fmt(mx("rain"),0)+"%"],["06–18時預報累積雨量",fmt(valid.reduce((z,x)=>z+(x.mm||0),0))+" mm"],["平均氣溫",fmt(avg("temp"))+" °C"],["平均體感溫度",fmt(avg("feel"))+" °C"],["平均風速",fmt(avg("wind"))+" km/h"],["最大陣風",fmt(mx("gust"))+" km/h"]].map(([a,b])=>`<div class="metric"><small>${a}</small><strong class="${a==='平均體感溫度'?'feel-temp':''}">${b}</strong></div>`).join("");
+ const rainTotal=valid.reduce((z,x)=>z+(x.mm||0),0),wet=valid.filter(x=>(x.mm||0)>0.1).sort((a,b)=>(b.mm||0)-(a.mm||0))[0],four=valid.map((x,i)=>({start:x.time,total:valid.slice(i,i+4).reduce((z,y)=>z+(y.mm||0),0)})).filter(x=>valid.findIndex(y=>y.time===x.start)+3<valid.length).sort((a,b)=>b.total-a.total)[0];
+ $("rainMetrics").innerHTML=[["06–18時最高降雨機率",fmt(mx("rain"),0)+"%"],["06–18時累積雨量",fmt(rainTotal)+" mm"],["雨量最大小時",wet?wet.time+"｜"+fmt(wet.mm)+" mm":"—"],["最大連續4小時雨量",four?four.start+"起｜"+fmt(four.total)+" mm":"—"],["機率資料來源",rainProbInfo.source]].map(([a,b])=>`<div class="metric"><small>${a}</small><strong style="font-size:18px">${b}</strong></div>`).join("");
+ $("rainMethodStatus").textContent=rainProbInfo.detail+`。雨量為五模式逐時中位數；每小時同時呈現五模式範圍，累積雨量為06:00–18:00逐時合計。`;
+ $("hourRows").innerHTML=base.map(x=>`<tr><td><b>${x.time}</b></td><td><span class="wxcell"><span class="wxemoji">${wxIcon(x.code)}</span>${wx(x.code)}</span></td><td>${rainProbHTML(x.rain)}</td><td>${amountRangeHTML(x)}</td><td>${fmt(x.temp)}</td><td><span class="feel-temp">${fmt(x.feel)}</span></td><td>${fmt(x.wind)}</td><td>${fmt(x.gust)}</td><td>${x.dir===null||x.dir===undefined?"—":`${dir(x.dir)} ${Math.round(x.dir)}°`}</td><td>${x.rh??"—"}%</td><td>${x.cloud??"—"}%</td><td>${fmt(x.uv)}</td><td class="${cls(score(x.rain,x.wind,x.gust,x.feel))}">${score(x.rain,x.wind,x.gust,x.feel)}/100</td></tr>`).join("");
  const chartTimes=base.map(x=>x.time);
  chart("windChart",[base.map(x=>x.wind),base.map(x=>x.gust)],Math.max(30,mx("gust")||30),["#1769aa","#d97706"],chartTimes," km/h");
  chart("rainChart",[base.map(x=>x.rain)],100,["#15966a"],chartTimes,"%");
+ chart("rainAmountChart",[base.map(x=>x.mm)],Math.max(1,Math.ceil((Math.max(...base.map(x=>x.mm||0),0))*1.2)),["#2563eb"],chartTimes," mm");
  chart("tempChart",[base.map(x=>x.temp),base.map(x=>x.feel)],Math.max(40,mx("temp")||40,mx("feel")||40),["#1769aa","#dc2626"],chartTimes,"°C");
  const windows=[];for(let i=0;i<=base.length-4;i++){const group=base.slice(i,i+4);if(group.length===4){const v=golfabilityScore(group);if(v!==null)windows.push({time:group[0].time,v,rain:group.reduce((z,x)=>z+(x.mm||0),0),gust:Math.max(...group.map(x=>x.gust||0))});}}
  windows.sort((a,b)=>b.v-a.v);
  $("teeAdvice").innerHTML=windows.length?windows.slice(0,3).map((x,i)=>`<p><b>推薦時段 ${i+1}：${x.time} 起連續4小時</b>｜${x.v}/100｜${golfScoreLabel(x.v)}｜雨量 ${x.rain.toFixed(1)} mm｜最大陣風 ${x.gust.toFixed(1)} km/h</p>`).join(""):"目前沒有完整四小時資料可供評估。";
  $("golfScoreSummary").textContent=windows.length?`四小時適打度最佳時段：${windows[0].time} 起，${windows[0].v}/100（${golfScoreLabel(windows[0].v)}）。此為本系統估算，非官方警報。`:"適打度資料不足。";
- $("modelCards").innerHTML=names.map(nm=>{const rows=active.modelRows[nm],v=rows.filter(x=>x.available),mean=k=>{const a=v.map(x=>x[k]).filter(x=>x!==null);return a.length?a.reduce((z,x)=>z+x,0)/a.length:null;},max=k=>{const a=v.map(x=>x[k]).filter(x=>x!==null);return a.length?Math.max(...a):null;};return `<div class="model"><strong>${nm}</strong><div class="big">${fmt(mean("wind"))} <small>km/h 平均風</small></div><small>最大陣風 ${fmt(max("gust"))} km/h<br>累積雨量 ${fmt(v.reduce((z,x)=>z+(x.mm||0),0))} mm<br>最高降雨機率 ${fmt(max("rain"),0)}%<br>資料時數 ${v.length}/13</small></div>`;}).join("");
+ $("modelCards").innerHTML=names.map(nm=>{const rows=active.modelRows[nm],v=rows.filter(x=>x.available),mean=k=>{const a=v.map(x=>x[k]).filter(x=>x!==null);return a.length?a.reduce((z,x)=>z+x,0)/a.length:null;},max=k=>{const a=v.map(x=>x[k]).filter(x=>x!==null);return a.length?Math.max(...a):null;};return `<div class="model"><strong>${nm}</strong><div class="big">${fmt(mean("wind"))} <small>km/h 平均風</small></div><small>最大陣風 ${fmt(max("gust"))} km/h<br>累積雨量 ${fmt(v.reduce((z,x)=>z+(x.mm||0),0))} mm<br>降雨機率：採獨立系集統計<br>資料時數 ${v.length}/13</small></div>`;}).join("");
  const allSpread=base.map(x=>x.spreads||{}),maxSpread=k=>{const a=allSpread.map(x=>x[k]).filter(v=>v!==null&&v!==undefined);return a.length?Math.max(...a):null;};
- const rainSpread=maxSpread("rain"),tempSpread=maxSpread("temp"),gustSpread=maxSpread("gust");
+ const rainSpread=null,tempSpread=maxSpread("temp"),gustSpread=maxSpread("gust");
  $("v26Stats").innerHTML=[["成功模型數",`${names.length}/5`],["降雨機率最大分歧",rainSpread===null?"—":`${rainSpread.toFixed(0)} 個百分點`],["氣溫最大分歧",tempSpread===null?"—":`${tempSpread.toFixed(1)} °C`],["陣風最大分歧",gustSpread===null?"—":`${gustSpread.toFixed(1)} km/h`]].map(([a,b])=>`<div class="v26-stat"><small>${a}</small><b>${b}</b></div>`).join("");
- const uncertainty=rainSpread===null?"資料不足":rainSpread>=40?"高（降雨判斷分歧大）":rainSpread>=20?"中（建議持續觀察）":"低至中（模型較一致）";
- $("v26Interpretation").textContent=`模型分歧判讀：${uncertainty}。最高降雨機率分歧 ${rainSpread===null?"無法計算":rainSpread.toFixed(0)+" 個百分點"}；最高氣溫分歧 ${tempSpread===null?"無法計算":tempSpread.toFixed(1)+" °C"}；最高陣風分歧 ${gustSpread===null?"無法計算":gustSpread.toFixed(1)+" km/h"}。模型一致不代表一定準確，仍須參考雷達、官方警特報及球場公告。`;
- $("tableNote").textContent=`${date}｜06:00–18:00逐時資料｜主表採用五模型逐時中位數整合。成功取得 ${names.length}/5 組模型。`;
- $("status").textContent=`V26 多模型共識完成：${names.length}/5 組模型｜${p.name}｜${date}`;
+ const uncertainty="以系集成員估算；尚未完成台灣球場歷史校準";
+ $("v26Interpretation").textContent=`模型分歧判讀：${uncertainty}。最高降雨機率改以系集成員比例估算；五個確定性模式僅比較雨量大小；最高氣溫分歧 ${tempSpread===null?"無法計算":tempSpread.toFixed(1)+" °C"}；最高陣風分歧 ${gustSpread===null?"無法計算":gustSpread.toFixed(1)+" km/h"}。模型一致不代表一定準確，仍須參考雷達、官方警特報及球場公告。`;
+ $("tableNote").textContent=`${date}｜06:00–18:00逐時資料｜雨量採五模型逐時中位數；降雨機率另採系集成員統計。成功取得 ${names.length}/5 組模型。`;
+ $("status").textContent=`V30 降雨預報完成：${names.length}/5 組模型｜${p.name}｜${date}`;
  $("courseAutoStatus").textContent=`${p.name}｜${date}｜座標 ${p.lat.toFixed(5)}, ${p.lon.toFixed(5)}｜氣象分析完成`;
  loadRadar(p.lat,p.lon);
  loadV28ProviderCache(p.name,date);
@@ -1189,6 +1239,19 @@ async function loadRadar(lat,lon){try{let d=await fetch("https://api.rainviewer.
 $("cwaBtn").addEventListener("click",async()=>{let key=$("cwaKey").value.trim();if(!key){$("cwaStatus").textContent="請先輸入 CWA API 授權碼。";return}if(!active.lat){$("cwaStatus").textContent="請先搜尋球場。";return}$("cwaStatus").textContent="正在查詢 CWA 宜蘭縣鄉鎮預報…";try{let url="https://opendata.cwa.gov.tw/api/v1/rest/datastore/F-D0047-001?Authorization="+encodeURIComponent(key)+"&format=JSON";let d=await fetch(url).then(r=>{if(!r.ok)throw Error("HTTP "+r.status+"；可能是授權碼、跨域或服務問題");return r.json()});let locs=d.records?.locations?.[0]?.location||[];let match=locs.find(x=>x.locationName?.includes("礁溪"))||locs.find(x=>x.locationName?.includes("宜蘭"));if(!match)throw Error("回傳資料中找不到礁溪鄉，請檢查API資料集。");let summary=(match.weatherElement||[]).slice(0,8).map(e=>{let t=e.time?.[0],v=t?.elementValue?.map(z=>z.value).join(" / ")||"—";return `<div><b>${e.elementName}</b>：${v}</div>`}).join("");$("cwaResult").innerHTML=`<b>${match.locationName}｜最近預報時段摘要</b>${summary}`;$("cwaStatus").textContent="CWA資料取得成功。注意此鄉鎮預報時段不一定是逐小時資料。"}catch(e){$("cwaStatus").textContent="CWA查詢失敗："+e.message+"。可先使用其他模型；若為跨域限制，需由伺服器代理呼叫。"}});
 
 
+// V30 rain verification: local CSV import, no invented skill scores.
+let validationRows=[];
+const validationColumns=['course','date','lead_days','hour','model','pred_prob','forecast_mm','observed_mm'];
+function parseCSV(text){const lines=text.replace(/^\uFEFF/,'').trim().split(/\r?\n/);if(lines.length<2)throw Error('CSV沒有資料列');const head=lines[0].split(',').map(x=>x.trim());const ix=Object.fromEntries(validationColumns.map(k=>[k,head.indexOf(k)]));const miss=validationColumns.filter(k=>ix[k]<0);if(miss.length)throw Error('缺少欄位：'+miss.join(', '));return lines.slice(1).filter(Boolean).map((line,i)=>{const a=line.split(',');const get=k=>a[ix[k]]?.trim()??'';const n=k=>get(k)===''?null:Number(get(k));const r={course:get('course'),date:get('date'),lead_days:n('lead_days'),hour:get('hour'),model:get('model'),pred_prob:n('pred_prob'),forecast_mm:n('forecast_mm'),observed_mm:n('observed_mm')};if(!r.course||!r.date||!r.model||r.pred_prob===null||r.forecast_mm===null||r.observed_mm===null||![r.pred_prob,r.forecast_mm,r.observed_mm].every(Number.isFinite)||r.pred_prob<0||r.pred_prob>100||r.forecast_mm<0||r.observed_mm<0)throw Error(`第 ${i+2} 列資料格式錯誤`);return r;});}
+function calcValidation(rows){if(!rows.length)return null;const n=rows.length,brier=rows.reduce((z,r)=>{const p=r.pred_prob/100,y=r.observed_mm>0.1?1:0;return z+(p-y)**2},0)/n;const errs=rows.map(r=>r.forecast_mm-r.observed_mm);const mae=errs.reduce((z,e)=>z+Math.abs(e),0)/n,rmse=Math.sqrt(errs.reduce((z,e)=>z+e*e,0)/n),bias=errs.reduce((z,e)=>z+e,0)/n;return {n,brier,mae,rmse,bias};}
+function renderValidation(){const c=document.getElementById('validationCourse')?.value||'all',l=document.getElementById('validationLead')?.value||'all';const rows=validationRows.filter(r=>(c==='all'||r.course===c)&&(l==='all'||String(r.lead_days)===l));const m=calcValidation(rows),fmt=(v,d=3)=>v===null||v===undefined?'—':v.toFixed(d);document.getElementById('validationMetrics').innerHTML=m?[["驗證樣本數",m.n],["降雨機率 Brier Score",fmt(m.brier)],["雨量 MAE",fmt(m.mae,2)+' mm'],["雨量 RMSE",fmt(m.rmse,2)+' mm'],["雨量 Bias",fmt(m.bias,2)+' mm']].map(([a,b])=>`<div class="metric"><small>${a}</small><strong>${b}</strong></div>`).join(''):[["驗證樣本數","0"],["降雨機率 Brier Score","—"],["雨量 MAE","—"],["雨量 RMSE","—"],["雨量 Bias","—"]].map(([a,b])=>`<div class="metric"><small>${a}</small><strong>${b}</strong></div>`).join('');
+const byModel={};rows.forEach(r=>(byModel[r.model]??=[]).push(r));const entries=Object.entries(byModel).map(([name,rs])=>({name,...calcValidation(rs)}));document.getElementById('validationBreakdown').innerHTML=entries.length?`<div class="table-wrap"><table><thead><tr><th>資料組</th><th>樣本數</th><th>Brier</th><th>雨量 MAE</th><th>RMSE</th><th>Bias</th></tr></thead><tbody>${entries.map(x=>`<tr><td>${nameSafe(x.name)}</td><td>${x.n}</td><td>${fmt(x.brier)}</td><td>${fmt(x.mae,2)}</td><td>${fmt(x.rmse,2)}</td><td>${fmt(x.bias,2)}</td></tr>`).join('')}</tbody></table></div><p class="hint">Brier Score 越低越好；雨量 MAE／RMSE 越低越好；Bias 正值代表預報偏濕（高估），負值代表低估。不同模型須使用相同時段與相同有效樣本比較。</p>`:`<p class="hint">尚無符合篩選條件的驗證樣本。範本僅供填寫，不含虛構觀測數據。</p>`;
+document.getElementById('validationStatus').textContent=rows.length?`已載入 ${validationRows.length} 筆資料；目前篩選 ${rows.length} 筆。統計結果僅代表匯入資料，不代表全部 57 球場。`:'尚無符合條件的驗證樣本。';}
+function nameSafe(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+document.getElementById('validationFile').addEventListener('change',e=>{const f=e.target.files?.[0];if(!f)return;const rd=new FileReader();rd.onload=()=>{try{validationRows=parseCSV(String(rd.result));renderValidation();}catch(err){document.getElementById('validationStatus').textContent='CSV匯入失敗：'+err.message;}};rd.readAsText(f,'utf-8');});
+document.getElementById('validationCourse').addEventListener('change',renderValidation);document.getElementById('validationLead').addEventListener('change',renderValidation);document.getElementById('clearValidation').addEventListener('click',()=>{validationRows=[];document.getElementById('validationFile').value='';renderValidation();});
+document.getElementById('downloadValidationTemplate').addEventListener('click',()=>{const csv=validationColumns.join(',')+'\n礁溪,2026-11-05,1,07:00,V29,35,0.4,0.0\n';const blob=new Blob(['\uFEFF'+validationColumns.join(',')+'\n'],{type:'text/csv;charset=utf-8'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='V30_降雨驗證資料範本.csv';a.click();URL.revokeObjectURL(a.href);});
+renderValidation();
 initCourseDatabase();
 
 </script>
