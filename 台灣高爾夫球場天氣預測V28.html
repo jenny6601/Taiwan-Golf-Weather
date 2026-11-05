@@ -1,0 +1,1195 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>台灣高爾夫球場天氣預測V28</title>
+<style>
+:root{--bg:#f2f5f7;--card:#fff;--ink:#17212b;--muted:#64748b;--line:#dfe6ec;--green:#126b4c;--blue:#1769aa;--amber:#b7791f;--red:#b42318}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,-apple-system,"Noto Sans TC",sans-serif}
+header{background:linear-gradient(120deg,#103b31,#177454);color:white;padding:25px 18px}.wrap{max-width:1320px;margin:auto;padding:0 16px}h1{font-size:clamp(23px,4vw,34px);margin:0 0 5px}header p{margin:0;color:#d8eee5}
+main{padding:20px 0 48px}.panel,.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:14px;box-shadow:0 2px 8px #17212b08}
+.controls{display:grid;grid-template-columns:2fr 1fr auto;gap:12px;align-items:end}
+label{display:block;font-size:13px;font-weight:700;color:#475569;margin-bottom:5px}
+input,select,button{font:inherit;border-radius:9px;padding:10px 12px;border:1px solid #cbd5e1;background:white;color:var(--ink);width:100%}
+button{background:var(--green);color:white;border:0;font-weight:700;cursor:pointer}button.secondary{background:#e8f1ed;color:#155b43}button:disabled{opacity:.55;cursor:wait}
+.status,.muted,.hint{color:var(--muted);font-size:13px}.status{margin-top:9px}
+.row{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}.candidatebox{border:1px solid var(--line);border-radius:11px;padding:12px;background:#f8fafc}.candidatebox select{width:100%;white-space:normal}.candidatebox option{padding:7px;white-space:normal}.pill{display:inline-block;padding:3px 8px;border-radius:99px;background:#e8f1ed;color:#155b43;font-size:12px;font-weight:700}
+.cards{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}.metric{background:#f8fafc;border:1px solid var(--line);border-radius:11px;padding:12px}.metric small{display:block;color:var(--muted)}.metric strong{font-size:23px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}.tablewrap{overflow:auto}table{border-collapse:collapse;width:100%;min-width:900px;font-size:13px}th,td{text-align:center;padding:9px 8px;border-bottom:1px solid var(--line);white-space:nowrap}th{background:#f8fafc;position:sticky;top:0}td:first-child,th:first-child{text-align:left}
+.feel-temp,.feel-label{color:#dc2626!important;font-weight:800}.metric strong.feel-temp{color:#dc2626!important}.tablewrap td .feel-temp{color:#dc2626!important}.good{color:#137c55;font-weight:700}.warn{color:#a16207;font-weight:700}.bad{color:#b42318;font-weight:700}
+.wxcell{display:inline-flex;align-items:center;gap:6px;font-weight:700;white-space:nowrap}
+.wxemoji{font-size:21px;line-height:1}.rainpill{display:inline-flex;align-items:center;gap:5px;padding:3px 8px;border-radius:99px;background:#eff6ff;color:#175b9a;font-weight:700}
+.rainpill.low{background:#f1f5f9;color:#64748b}.rainpill.mid{background:#fff7ed;color:#a16207}.rainpill.high{background:#fee2e2;color:#b42318}
+.rainamount{display:inline-flex;align-items:center;gap:5px;font-weight:700}.rainamount.none{color:#94a3b8}.rainamount.light{color:#2563a6}.rainamount.heavy{color:#b42318}
+.legend{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}.legend span{font-size:12px;padding:4px 8px;border-radius:8px;background:#f8fafc;border:1px solid var(--line)}
+.modelgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}.model{border:1px solid var(--line);border-radius:10px;padding:11px}.model strong{display:block}.model .big{font-size:22px;font-weight:800}.model small{color:var(--muted)}
+canvas{width:100%;height:240px}.sourcegrid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}.source{border:1px solid var(--line);border-radius:10px;padding:10px}.source a{color:#145c47;font-weight:700;text-decoration:none}.source small{display:block;color:var(--muted);margin-top:3px}
+.quick-course-wrap{margin-top:14px;padding:12px;border:1px solid #cfe4d9;border-radius:12px;background:#f5fbf7}.quick-course-title{font-weight:800;color:#155b43;margin-bottom:9px}.quick-course-buttons{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}.quick-course-buttons button{min-height:44px;border:1px solid #9bcbb4;border-radius:9px;background:#fff;color:#155b43;font-weight:800;font-size:15px;cursor:pointer}.quick-course-buttons button.quick-selected{background:#126b4c;color:#fff}@media(max-width:600px){.quick-course-buttons{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.course-list{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;max-height:420px;overflow:auto;margin-top:8px}.course-item{border:1px solid var(--line);border-radius:10px;padding:9px;background:#fff}.course-item button{padding:7px 9px;text-align:left;background:#f1f7f4;color:#155b43;font-weight:700}.course-item small{display:block;color:var(--muted);margin-top:4px}.course-item .tag{display:inline-block;font-size:11px;border-radius:99px;background:#eef2ff;color:#3949ab;padding:2px 6px;margin-left:4px}.course-item .extra-tag{background:#fff7ed;color:#9a3412}.radar{width:100%;max-height:390px;object-fit:contain;background:#eaf0f4;border-radius:10px}.keyrow{display:grid;grid-template-columns:2fr auto;gap:10px;align-items:end}
+details{border:1px solid var(--line);border-radius:10px;padding:10px;margin:8px 0}summary{font-weight:700;cursor:pointer}
+.v26-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px}.v26-stat{border:1px solid var(--line);border-radius:10px;padding:11px;background:#f8fafc}.v26-stat b{display:block;font-size:20px}
+@media(max-width:700px){.v26-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+footer{color:var(--muted);font-size:12px;padding:18px 0}
+@media(max-width:850px){.course-list{grid-template-columns:repeat(2,minmax(0,1fr))}.controls,.grid2,.keyrow{grid-template-columns:1fr}.cards{grid-template-columns:repeat(2,1fr)}.modelgrid,.sourcegrid{grid-template-columns:repeat(2,1fr)}}
+/* V11：手機逐時表格優先顯示五項核心天氣資訊 */
+@media(max-width:600px){
+  .tablewrap{overflow-x:hidden}
+  #hourRowsTable, .tablewrap table{
+    width:100%; min-width:0; table-layout:fixed; font-size:11px;
+  }
+  .tablewrap th,.tablewrap td{
+    padding:7px 2px; white-space:normal; overflow-wrap:anywhere;
+    line-height:1.25; text-align:center;
+  }
+  .tablewrap th{font-size:10px}
+  .tablewrap td:first-child,.tablewrap th:first-child{text-align:center}
+  /* 保留：時間、天氣、降雨機率、雨量、氣溫、體感 */
+  .tablewrap th:nth-child(n+7),
+  .tablewrap td:nth-child(n+7){display:none}
+  .tablewrap th:nth-child(1),.tablewrap td:nth-child(1){width:13%}
+  .tablewrap th:nth-child(2),.tablewrap td:nth-child(2){width:19%}
+  .tablewrap th:nth-child(3),.tablewrap td:nth-child(3){width:18%}
+  .tablewrap th:nth-child(4),.tablewrap td:nth-child(4){width:17%}
+  .tablewrap th:nth-child(5),.tablewrap td:nth-child(5){width:16.5%}
+  .tablewrap th:nth-child(6),.tablewrap td:nth-child(6){width:16.5%}
+  .tablewrap .wxcell{display:flex;justify-content:center;gap:2px;flex-wrap:wrap}
+  .tablewrap .wxemoji{font-size:18px}
+  .tablewrap .rainpill{padding:2px 4px;gap:2px;justify-content:center}
+  .tablewrap .rainamount{display:inline-flex;justify-content:center;gap:2px}
+}
+@media(min-width:601px){
+  .tablewrap th,.tablewrap td{white-space:nowrap}
+}
+
+
+/* V12：手機精簡版，桌機仍保留完整分析區塊 */
+@media(max-width:600px){
+  .mobile-hide-models,
+  .mobile-hide-wind,
+  .mobile-hide-tee,
+  .mobile-hide-radar,
+  .mobile-hide-cwa,
+  .mobile-hide-sources,
+  .mobile-hide-quality{display:none!important}
+}
+
+
+/* V12.1 修正：手機版確實隱藏高爾夫專用氣象預報參考整個區塊 */
+@media screen and (max-width: 600px) {
+  section#golfForecastPanel,
+  #golfForecastPanel {
+    display: none !important;
+    visibility: hidden !important;
+    height: 0 !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+  }
+}
+
+
+/* V13 Auto：選球場＋選日期後自動搜尋並載入 */
+.v13-auto-date{display:grid;gap:6px;max-width:360px;margin:12px 0}
+.v13-auto-date input{width:100%;min-height:44px;padding:9px;font-size:16px;border:1px solid var(--line);border-radius:9px}
+
+
+/* V13 Auto mobile fix: large touch targets and clear two-step flow */
+.v13-auto-date{background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:12px}
+.v13-auto-date label{font-weight:700;font-size:15px}
+.v13-auto-date input{width:100%;min-height:50px;font-size:17px;padding:10px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--ink);touch-action:manipulation}
+#courseList .course-item button{width:100%;min-height:48px;padding:10px 12px;text-align:left;font-size:16px;touch-action:manipulation;position:relative;z-index:2}
+#courseList .course-item{position:relative}
+#courseList .course-item button.course-selected{outline:3px solid var(--green);outline-offset:1px}
+@media(max-width:600px){
+ #taiwanCoursePanel .controls{grid-template-columns:1fr!important}
+ #courseList{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .v13-auto-date{position:relative;z-index:3}
+}
+
+
+#coursePickerPanel .course-list{grid-template-columns:repeat(3,minmax(0,1fr));max-height:none;overflow:visible}
+#coursePickerPanel .course-item{padding:8px}
+#coursePickerPanel .course-item button{min-height:48px;text-align:center;font-size:15px}
+#coursePickerPanel .course-item small{font-size:11px;line-height:1.35}
+#coursePickerPanel .course-item button.course-selected{background:#126b4c;color:#fff;outline:3px solid #b7e4d1}
+@media(max-width:600px){#coursePickerPanel .course-list{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}#coursePickerPanel .course-item{padding:6px}#coursePickerPanel .course-item button{min-height:50px;padding:8px 5px;font-size:14px}}
+
+.provider-panel{margin-top:14px}.provider-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:12px}.provider-card{border:1px solid var(--line);border-radius:11px;padding:12px;background:#fff}.provider-card strong{display:block;font-size:16px}.provider-status{font-size:12px;color:#64748b;margin:6px 0}.provider-links{display:flex;gap:10px;flex-wrap:wrap;font-size:13px}.provider-pill{display:inline-block;border-radius:999px;padding:3px 8px;background:#fff7e6;color:#8a5a00;font-size:11px;font-weight:700}.provider-table-wrap{overflow-x:auto}.provider-table{width:100%;border-collapse:collapse;font-size:13px}.provider-table th,.provider-table td{border-bottom:1px solid var(--line);padding:7px;text-align:right;white-space:nowrap}.provider-table th:first-child,.provider-table td:first-child{text-align:left}.provider-note{background:#f4f8fb;border-radius:9px;padding:10px;font-size:13px;color:#475569;line-height:1.6}@media(max-width:600px){.provider-grid{grid-template-columns:1fr}}
+</style>
+<style>@media(max-width:600px){section.mobile-hide-sources{display:block!important}}</style>
+</head>
+<body>
+<header><div class="wrap"><h1>⛳ 台灣高爾夫球場天氣預測V28</h1><p>台灣球場資料庫・縣市篩選・手動座標・氣溫／體感溫度逐時分析</p></div></header>
+<main class="wrap">
+
+
+
+<section class="panel" id="coursePickerPanel">
+ <h2 style="margin:0 0 10px">選擇日期、縣市，再按球場</h2>
+ <label for="courseDate">預報日期</label>
+ <input id="courseDate" type="date" style="max-width:320px">
+ <label for="countySelect" style="display:block;margin-top:12px">選擇縣市</label>
+ <select id="countySelect" style="width:100%;max-width:320px;padding:10px;border:1px solid #cbd5e1;border-radius:10px;background:#fff">
+  <option value="">請選擇縣市</option>
+ </select>
+ <div class="muted" id="status" style="margin:8px 0 4px">尚未載入氣象資料。</div>
+ <div class="muted" id="courseAutoStatus" style="margin:4px 0 12px">共57座球場。先選日期，再選縣市，最後點選球場按鈕，即以固定座標載入當日天氣。</div>
+ <div id="courseList" class="course-list" aria-label="57座高爾夫球場"></div>
+ <div class="quick-course-wrap"><div class="quick-course-title">⭐ 常用球場（快速選擇）</div><div id="quickCourseButtons" class="quick-course-buttons"><button type="button" data-quick-course="東方">東方</button><button type="button" data-quick-course="礁溪">礁溪</button><button type="button" data-quick-course="美麗華">美麗華</button><button type="button" data-quick-course="林口">林口</button><button type="button" data-quick-course="大溪">大溪</button></div></div>
+</section>
+<section class="panel">
+ <div class="row"><div><h2 id="locname" style="margin:0">宜蘭縣礁溪鄉礁溪高爾夫球場</h2><div id="coords" class="muted">搜尋球場後顯示實際座標</div></div><span class="pill">V28 多來源擴充架構（五模式核心）</span></div>
+</section>
+<section class="cards" id="metrics">
+ <div class="metric"><small>當日最高降雨機率</small><strong>—</strong></div>
+ <div class="metric"><small>當日預報雨量</small><strong>—</strong></div>
+ <div class="metric"><small>平均氣溫</small><strong>—</strong></div>
+ <div class="metric"><small>平均體感溫度</small><strong>—</strong></div>
+ <div class="metric"><small>平均風速</small><strong>—</strong></div>
+ <div class="metric"><small>最大陣風</small><strong>—</strong></div>
+</section>
+<section class="card"><h3>逐時天氣預報（06:00–18:00）</h3><div class="legend"><span>☀️ 晴朗</span><span>🌤️ 多雲</span><span>🌧️ 下雨</span><span>⛈️ 雷雨</span><span>💧 低降雨機率</span><span>☔ 高降雨機率</span></div><div class="muted" id="tableNote">固定列出06:00至18:00共13個時段。手機版優先顯示時間、天氣、降雨機率、雨量、氣溫及體感；其他氣象欄位仍保留於桌機版。已過去但API沒有回傳的時段會標示「無資料」，不會以推測值補齊。</div><div class="tablewrap"><table><thead><tr><th>時間</th><th>天氣狀況</th><th>💧 降雨機率</th><th>🌧️ 雨量</th><th>氣溫 °C</th><th>體感 °C</th><th>風速 km/h</th><th>陣風 km/h</th><th>風向</th><th>濕度</th><th>雲量</th><th>UV</th><th>打球參考分數</th></tr></thead><tbody id="hourRows"><tr><td colspan="13">尚無資料</td></tr></tbody></table></div></section>
+<section class="card" id="golfForecastPanel">
+ <h3>⛳ 高爾夫專用氣象預報參考</h3>
+ <p class="muted">整合球場座標預報、Golfability／Playability、四小時球局窗口及風對擊球的影響。若網站沒有公開資料 API，僅提供外部交叉核對，不會假稱已自動抓取其即時數值。</p>
+ <div class="modelgrid">
+  <div class="model"><strong>GolfWeather.com</strong><div class="big">球場座標預報</div><small>全球球場資料庫，以球場經緯度提供預報。</small><p><a href="https://golfweather.com/" target="_blank" rel="noopener">開啟球場預報 ↗</a></p></div>
+  <div class="model"><strong>GolfWeather.app</strong><div class="big">Playability 0–10</div><small>溫度、風、降雨機率、濕度及 UV；公開說明資料源為 Open-Meteo。</small><p><a href="https://golfweather.app/" target="_blank" rel="noopener">開啟高爾夫預報 ↗</a></p></div>
+  <div class="model"><strong>Weather4Golf</strong><div class="big">球局窗口</div><small>最佳開球時段、降雨時序、風向對球路影響；使用 Apple WeatherKit。</small><p><a href="https://apps.apple.com/us/app/golf-weather-weather4golf/id6757702271" target="_blank" rel="noopener">查看服務介紹 ↗</a></p></div>
+  <div class="model"><strong>Golfer WX</strong><div class="big">Golfability 1–10</div><small>風、溫度、雨、UV、濕度及最佳開球時段；目前以美國球場為主。</small><p><a href="https://www.golferwx.com/" target="_blank" rel="noopener">開啟服務 ↗</a></p></div>
+  <div class="model"><strong>Golf Weather Intelligence</strong><div class="big">四小時球局評分</div><small>降雨、風、溫度、雷雨、雲量及日照；公開說明預報基礎為 Open-Meteo。</small><p><a href="https://golfweatheriq.com/" target="_blank" rel="noopener">開啟服務 ↗</a></p></div>
+ </div>
+ <div class="hint">資料獨立性：GolfWeather.app 與 Golf Weather Intelligence 公開說明均使用 Open-Meteo，適合參考其高爾夫評分邏輯，但不應當成額外獨立氣象模型重複加權。Golfer WX 主要覆蓋美國；Weather4Golf 未提供可供本網頁直接呼叫的公開 API。</div>
+ <div id="golfScoreSummary" class="status">取得球場預報後，顯示本系統的高爾夫適打度分析。</div>
+</section>
+<section class="card mobile-hide-models">
+ <div class="row"><h3 style="margin:0">五組氣象模型比較</h3><span class="muted">同一座標、同一日期、同一時段</span></div>
+ <div id="modelCards" class="modelgrid" style="margin-top:12px"><div class="model">尚未取得模型資料</div></div>
+ <p class="muted">模型：ECMWF IFS、NOAA GFS、DWD ICON、JMA GSM、加拿大 GEM。各模型由 Open-Meteo 提供統一介面；不是五家獨立氣象網站的觀測，也不代表模型在當地均有相同解析度。</p>
+</section>
+<section class="card provider-panel" id="commercialProviderPanel">
+ <h3>四家外部氣象服務｜V28 API 整合</h3>
+ <p class="muted">本區與五個 Open-Meteo 數值模式分開呈現。尚未設定 API Key 時不會顯示虛構預報；取得授權並由 GitHub Actions／後端產生標準化資料後，才會顯示各家逐時資料。外部服務在完成歷史回測前，不納入五模型中位數。</p>
+ <div class="provider-grid">
+  <div class="provider-card"><strong>Windy Point Forecast</strong><span class="provider-pill">免費測試資料不可上線</span><div class="provider-status" id="windyProviderStatus">尚未設定正式 API；Trial 僅供開發測試，回傳資料隨機擾動。</div><div class="provider-links"><a href="https://api.windy.com/point-forecast/pricing" target="_blank" rel="noopener">方案與價格</a><a href="https://api.windy.com/" target="_blank" rel="noopener">申請 API Key</a></div></div>
+  <div class="provider-card"><strong>meteoblue Weather API</strong><span class="provider-pill">優先申請免費試用</span><div class="provider-status" id="meteoblueProviderStatus">尚未設定 API Key；官方 Free Weather API 提供一年、10 million credits，依資料包扣點。</div><div class="provider-links"><a href="https://docs.meteoblue.com/en/weather-apis/free-weather-api/overview" target="_blank" rel="noopener">免費 API 說明</a><a href="https://business.meteoblue.com/products/weather-apis/free-weather-api" target="_blank" rel="noopener">申請入口</a></div></div>
+  <div class="provider-card"><strong>AccuWeather Core API</strong><span class="provider-pill">免費試用有期限</span><div class="provider-status" id="accuweatherProviderStatus">尚未設定 API Key；官方 Free Core 為 14 天試用、每日 500 次呼叫，之後依方案付費。</div><div class="provider-links"><a href="https://developer.accuweather.com/documentation/overview" target="_blank" rel="noopener">方案與價格</a><a href="https://developer.accuweather.com/" target="_blank" rel="noopener">申請 API Key</a></div></div>
+  <div class="provider-card"><strong>Foreca Weather API</strong><span class="provider-pill">免費但限非商業用途</span><div class="provider-status" id="forecaProviderStatus">尚未設定 API Key；Freemium 每日 2,000 次呼叫，限個人、學校及研究等非商業用途。</div><div class="provider-links"><a href="https://business.foreca.com/weather-api/free-weather-api" target="_blank" rel="noopener">免費方案</a><a href="https://developer.foreca.com/" target="_blank" rel="noopener">API 文件</a></div></div>
+ </div>
+ <div class="provider-note" style="margin-top:12px"><b>資料安全：</b>API Key 不可放在 HTML、GitHub Pages 前端或公開 Repository。請放在 GitHub Repository → Settings → Secrets and variables → Actions。預定 Secret 名稱：<code>METEOBLUE_API_KEY</code>、<code>ACCUWEATHER_API_KEY</code>、<code>FORECA_API_KEY</code>、<code>WINDY_API_KEY</code>。Windy Trial 不可作正式預報；免費優先時先不啟用 Windy 生產資料。</div>
+ <div id="providerCacheStatus" class="status" style="margin-top:10px">外部服務資料：尚未載入快取。未設定 API 或尚未執行後端時，V28 五模式仍正常運作。</div>
+ <div id="providerComparison" class="provider-table-wrap"></div>
+</section>
+<section class="card" id="v27ConsensusPanel"><h3>V28 多模型整合與不確定性</h3><p class="muted">主表採五組模型逐時中位數整合；模型分歧以模型間範圍呈現。此為即時多模型共識，尚非經歷史回測校準的機率預報。</p><div class="v26-grid" id="v26Stats"><div class="v26-stat">整合模型<b>—</b></div><div class="v26-stat">降雨機率分歧<b>—</b></div><div class="v26-stat">氣溫分歧<b>—</b></div><div class="v26-stat">陣風分歧<b>—</b></div></div><div id="v26Interpretation" class="status">選擇球場後顯示模型共識與分歧。</div></section>
+<section class="grid2">
+ <div class="card mobile-hide-wind"><h3>逐小時風速／陣風（km/h）</h3><canvas id="windChart" width="900" height="260"></canvas><div class="muted">平均風速與陣風。陣風明顯高於平均風速時，擊球穩定性較差。</div></div>
+ <div class="card"><h3>逐小時降雨機率（%）</h3><canvas id="rainChart" width="600" height="260"></canvas><div class="muted">降雨機率採最佳可用模型；雨量另列於明細。</div></div>
+</section>
+<section class="card">
+ <h3>逐小時氣溫與體感溫度（°C）</h3>
+ <canvas id="tempChart" width="900" height="260"></canvas>
+ <div class="legend"><span style="color:#1769aa;font-weight:800">🔵 氣溫（2公尺高度）</span><span class="feel-label">🔴 體感溫度（Apparent temperature）</span></div>
+ <div class="muted">比較實際預報氣溫與人體感受的估算溫度；體感溫度會受濕度、風速及日照等因素影響，並非人體核心溫度。</div>
+</section>
+
+<section class="card mobile-hide-tee"><h3>最佳開球時段（連續4小時）</h3><div id="teeAdvice" class="muted">取得資料後依雨、風、陣風及體感計算。這是規則式參考分數，不是官方安全預警。</div></section>
+<section class="grid2">
+ <div class="card mobile-hide-radar"><div class="row"><h3 style="margin:0">即時降雨雷達</h3><a href="https://www.rainviewer.com/" target="_blank" rel="noopener">RainViewer ↗</a></div><p class="muted">顯示球場附近雷達影像。RainViewer 公開API主要提供過去雷達影像，不等同未來降雨預測。</p><img id="radarImg" class="radar" alt="RainViewer 雷達影像" src=""><div id="radarStatus" class="muted">搜尋球場後載入雷達影像。</div></div>
+ <div class="card mobile-hide-cwa"><h3>中央氣象署資料（選用）</h3><p class="muted">CWA開放資料需要個人授權碼。授權碼只在本次瀏覽器頁面使用，不會上傳到你的 GitHub 程式碼。</p><div class="keyrow"><div><label for="cwaKey">CWA API 授權碼</label><input id="cwaKey" type="password" placeholder="貼上 CWA Open Data API 授權碼"></div><button id="cwaBtn" class="secondary">查詢宜蘭鄉鎮預報</button></div><div id="cwaStatus" class="status">尚未查詢。若未填授權碼，其他模型仍可正常使用。</div><div id="cwaResult" class="muted"></div><p class="muted"><a href="https://opendata.cwa.gov.tw/" target="_blank" rel="noopener">申請中央氣象署開放資料授權碼 ↗</a></p></div>
+</section>
+<section class="card mobile-hide-sources"><h3>氣象來源資料庫（57個）</h3><p class="muted">V28 將原始57筆來源逐筆建立整合狀態。狀態標示代表本頁實際使用方式，不代表網站品質排名；外部參考網站不會被假稱為已自動抓取。</p><div id="sources"></div>
+<div id="v27SourceRegistry" class="v27-registry"></div></section>
+<section class="card mobile-hide-quality"><h3>資料品質、球場搜尋來源與使用限制</h3><ul class="muted"><li>本版球場資料庫內建57座球場地址；選取球場及日期後，以該地址向 OpenStreetMap Nominatim 地理編碼取得座標，再呼叫 Open-Meteo 預報。若地址無法定位，不使用行政區中心點代替。</li><li>OpenStreetMap Nominatim 於使用者選取球場及日期後執行單次地址定位；不做批次請求，遵守服務使用政策及資料來源標示要求。OpenStreetMap 資料採 ODbL 授權。</li><li>V26 以五組模型逐時中位數作主表，並列模型間最大分歧；這是模型共識指標，不是經歷史回測驗證的準確率或校準機率。多模型差異越大，預報不確定性越高；尤其台灣複雜地形、季風及局部陣雨情境，不宜只看單一模型。</li><li>本版逐一查詢 ECMWF IFS、NOAA GFS、DWD ICON、JMA GSM、加拿大 GEM 五組模型，主表以逐時中位數整合；模型來源有不同解析度、更新週期及系統性誤差，且並非完全統計獨立。模型覆蓋範圍、解析度及更新時間不同。</li><li>降雨機率、累積雨量、平均風速及陣風是不同變數，不能互相替代。</li><li>RainViewer雷達免費API適用個人／教育用途，需標示來源，且不保證服務可用性。</li><li>CWA API需授權碼；本版採使用者自行輸入，若瀏覽器跨域限制阻擋，需改用後端代理，不能將授權碼公開放在GitHub。</li><li>預報分數不代表球場可開放或安全。雷電、豪雨、強風警報及球場公告優先；聽到雷聲或有雷電警示時應立即停止戶外活動並依球場指示避難。</li><li>Open-Meteo免費API適用非商業使用；商用或高流量部署請先確認授權及服務條款。</li></ul><p><a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap attribution</a> ｜ <a href="https://nominatim.org/release-docs/latest/api/Search/" target="_blank" rel="noopener">Nominatim搜尋文件</a> ｜ <a href="https://open-meteo.com/en/docs/geocoding-api" target="_blank" rel="noopener">Open-Meteo地理編碼文件</a> ｜ <a href="https://open-meteo.com/en/docs" target="_blank" rel="noopener">Open-Meteo預報文件</a> ｜ <a href="https://www.rainviewer.com/api.html" target="_blank" rel="noopener">RainViewer API文件</a> ｜ <a href="https://opendata.cwa.gov.tw/devManual/description" target="_blank" rel="noopener">CWA API文件</a></p></section>
+<footer>台灣高爾夫球場天氣預測V28｜全台57球場・57氣象來源整合管理｜06:00–18:00逐時預報｜資料可能延遲或缺漏，請以官方警特報、即時觀測及球場公告為準。</footer>
+</main>
+<script>
+
+const taiwanCourses = [
+  {
+    "city": "新北市",
+    "name": "臺灣高爾夫俱樂部球場（老淡水）",
+    "searchName": "臺灣高爾夫俱樂部球場",
+    "aliases": [
+      "老淡水",
+      "台灣老淡水",
+      "淡水老球場",
+      "Taiwan Golf & Country Club",
+      "Taiwan Golf Club"
+    ],
+    "holes": 18,
+    "kind": "standard",
+    "coordNote": "已核實",
+    "address": "新北市淡水區油車里中正路一段6巷32號",
+    "addressSource": "運動部115年1月球場名冊；補充球場名錄/球場公開資料",
+    "lat": 25.1747,
+    "lon": 121.4389,
+    "coordSource": "內政部國土測繪中心 / 實測座標"
+  },
+  {
+    "city": "新北市",
+    "name": "揮皇",
+    "holes": 18,
+    "kind": "standard",
+    "coordNote": "已核實",
+    "address": "新北市淡水區八勢里八勢路300號",
+    "addressSource": "運動部115年1月球場名冊；補充球場名錄/球場公開資料",
+    "lat": 25.1581,
+    "lon": 121.4553,
+    "coordSource": "內政部國土測繪中心 / 實測座標"
+  },
+  {
+    "city": "新北市",
+    "name": "大屯",
+    "holes": 18,
+    "kind": "standard",
+    "coordNote": "已核實",
+    "address": "新北市淡水區坤山里商工路309號",
+    "addressSource": "運動部115年1月球場名冊；補充球場名錄/球場公開資料",
+    "lat": 25.1633,
+    "lon": 121.4647,
+    "coordSource": "內政部國土測繪中心 / 實測座標"
+  },
+  {
+    "city": "新北市",
+    "name": "北投國華",
+    "holes": 18,
+    "kind": "standard",
+    "coordNote": "已核實",
+    "address": "新北市淡水區坪頂里小坪頂23之1號",
+    "addressSource": "運動部115年1月球場名冊；補充球場名錄/球場公開資料",
+    "lat": 25.1486,
+    "lon": 121.5031,
+    "coordSource": "內政部國土測繪中心 / 實測座標"
+  },
+  {
+    "city": "新北市",
+    "name": "八里國際",
+    "holes": 18,
+    "kind": "standard",
+    "coordNote": "已核實",
+    "address": "新北市林口區嘉寶里寶斗厝坑91號",
+    "addressSource": "運動部115年1月球場名冊；補充球場名錄/球場公開資料",
+    "lat": 25.1328,
+    "lon": 121.365,
+    "coordSource": "內政部國土測繪中心 / 實測座標"
+  },
+  {
+    "city": "新北市",
+    "name": "美麗華",
+    "holes": 18,
+    "kind": "standard",
+    "coordNote": "已核實",
+    "address": "新北市林口區下福里下福路9號",
+    "addressSource": "運動部115年1月球場名冊；補充球場名錄/球場公開資料",
+    "lat": 25.0758,
+    "lon": 121.3411,
+    "coordSource": "內政部國土測繪中心 / 實測座標"
+  },
+  {
+    "city": "新北市",
+    "name": "林口",
+    "holes": 18,
+    "kind": "standard",
+    "coordNote": "已核實",
+    "address": "新北市林口區湖北里後湖50之1號",
+    "addressSource": "運動部115年1月球場名冊；補充球場名錄/球場公開資料",
+    "lat": 25.0714,
+    "lon": 121.3719,
+    "coordSource": "內政部國土測繪中心 / 實測座標"
+  },
+  {
+    "city": "新北市",
+    "name": "幸福",
+    "holes": 18,
+    "kind": "standard",
+    "coordNote": "已核實",
+    "address": "新北市林口區下福里71之1號",
+    "addressSource": "運動部115年1月球場名冊；補充球場名錄/球場公開資料",
+    "lat": 25.0833,
+    "lon": 121.3361,
+    "coordSource": "內政部國土測繪中心 / 實測座標"
+  },
+  {
+    "city": "新北市",
+    "name": "東華",
+    "holes": 18,
+    "kind": "standard",
+    "coordNote": "已核實",
+    "address": "新北市林口區下福里7鄰93-1號",
+    "addressSource": "運動部115年1月球場名冊；補充球場名錄/球場公開資料",
+    "lat": 25.0806,
+    "lon": 121.3314,
+    "coordSource": "內政部國土測繪中心 / 實測座標"
+  },
+  {
+    "city": "新北市",
+    "name": "黃金海岸（北海）",
+    "holes": 18,
+    "kind": "standard",
+    "coordNote": "已核實",
+    "address": "新北市石門區草里里草埔尾5號",
+    "addressSource": "運動部115年1月球場名冊；補充球場名錄/球場公開資料",
+    "lat": 25.2711,
+    "lon": 121.5722,
+    "coordSource": "內政部國土測繪中心 / 實測座標"
+  },
+  {
+    "city": "新北市",
+    "name": "濱海",
+    "holes": 18,
+    "kind": "standard",
+    "coordNote": "已核實",
+    "address": "新北市石門區尖鹿里尖仔路10號",
+    "addressSource": "運動部115年1月球場名冊；補充球場名錄/球場公開資料",
+    "lat": 25.2861,
+    "lon": 121.5583,
+    "coordSource": "內政部國土測繪中心 / 實測座標"
+  },
+  {
+    "city": "新北市",
+    "name": "翡翠",
+    "holes": 18,
+    "kind": "standard",
+    "coordNote": "已核實",
+    "address": "新北市萬里區北基里仁七街16-1號",
+    "addressSource": "運動部115年1月球場名冊；補充球場名錄/球場公開資料",
+    "lat": 25.1786,
+    "lon": 121.6819,
+    "coordSource": "內政部國土測繪中心 / 實測座標"
+  },
+  {
+    "city": "桃園市",
+    "name": "台北",
+    "holes": 18,
+    "kind": "standard",
+    "coordNote": "已核實",
+    "address": "桃園市蘆竹區坑子里赤塗崎34之1號",
+    "addressSource": "運動部115年1月球場名冊；補充球場名錄/球場公開資料",
+    "lat": 25.0489,
+    "lon": 121.2825,
+    "coordSource": "內政部國土測繪中心 / 實測座標"
+  },
+  {
+    "city": "桃園市",
+    "name": "統帥",
+    "holes": 18,
+    "kind": "standard",
+    "coordNote": "已核實",
+    "address": "桃園市蘆竹區營盤里六福一路195巷1弄8號",
+    "addressSource": "運動部115年1月球場名冊；補充球場名錄/球場公開資料",
+    "lat": 25.0417,
+    "lon": 121.2958,
+    "coordSource": "內政部國土測繪中心 / 實測座標"
+  },
+  {
+    "city": "桃園市",
+    "name": "第一",
+    "holes": 18,
+    "kind": "standard",
+    "coordNote": "已核實",
+    "address": "桃園市蘆竹區坑子村7鄰貓尾崎50號",
+    "addressSource": "運動部115年1月球場名冊；補充球場名錄/球場公開資料",
+    "lat": 25.0611,
+    "lon": 121.2836,
+    "coordSource": "內政部國土測繪中心 / 實測座標"
+  },
+  {
+    "city": "桃園市",
+    "name": "永漢",
+    "holes": 18,
+    "kind": "standard",
+    "coordNote": "已核實",
+    "address": "桃園市蘆竹區山腳里9鄰南山北路一段300號",
+    "addressSource": "運動部115年1月球場名冊；補充球場名錄/球場公開資料",
+    "lat": 25.0592,
+    "lon": 121.2917,
+    "coordSource": "內政部國土測繪中心 / 實測座標"
+  },
+  {
+    "city": "桃園市",
+    "name": "長庚",
+    "holes": 18,
+    "kind": "standard",
+    "coordNote": "已核實",
+    "address": "桃園市龜山區舊路里長庚球場路66號",
+    "addressSource": "運動部115年1月球場名冊；補充球場名錄/球場公開資料",
+    "lat": 25.0336,
+    "lon": 121.3694,
+    "coordSource": "內政部國土測繪中心 / 實測座標"
+  },
+  {
+    "city": "桃園市",
+    "name": "東方",
+    "holes": 18,
+    "kind": "standard",
+    "coordNote": "已核實",
+    "address": "桃園市龜山區舊路里東方球場路100號",
+    "addressSource": "運動部115年1月球場名冊；補充球場名錄/球場公開資料",
+    "lat": 25.0381,
+    "lon": 121.3614,
+    "coordSource": "內政部國土測繪中心 / 實測座標"
+  },
+  {
+    "city": "桃園市",
+    "name": "楊梅",
+    "holes": 18,
+    "kind": "standard",
+    "coordNote": "已核實",
+    "address": "桃園市楊梅區東流里13鄰崩坡73號",
+    "addressSource": "運動部115年1月球場名冊；補充球場名錄/球場公開資料",
+    "lat": 24.9125,
+    "lon": 121.1833,
+    "coordSource": "內政部國土測繪中心 / 實測座標"
+  },
+  {
+    "city": "桃園市",
+    "name": "揚昇",
+    "holes": 18,
+    "kind": "standard",
+    "coordNote": "已核實",
+    "address": "桃園市楊梅區楊昇路256號",
+    "addressSource": "運動部115年1月球場名冊；補充球場名錄/球場公開資料",
+    "lat": 24.9208,
+    "lon": 121.1878,
+    "coordSource": "內政部國土測繪中心 / 實測座標"
+  },
+  {
+    "city": "桃園市",
+    "name": "桃園",
+    "holes": 18,
+    "kind": "standard",
+    "coordNote": "已核實",
+    "address": "桃園市龍潭區九龍里29鄰悅華路100號",
+    "addressSource": "運動部115年1月球場名冊；補充球場名錄/球場公開資料",
+    "lat": 24.8789,
+    "lon": 121.2069,
+    "coordSource": "內政部國土測繪中心 / 實測座標"
+  },
+  {
+    "city": "桃園市",
+    "name": "龍潭",
+    "holes": 18,
+    "kind": "standard",
+    "coordNote": "已核實",
+    "address": "桃園市龍潭區三林里民生路439巷130號",
+    "addressSource": "運動部115年1月球場名冊；補充球場名錄/球場公開資料",
+    "lat": 24.8569,
+    "lon": 121.2183,
+    "coordSource": "內政部國土測繪中心 / 實測座標"
+  },
+  {
+    "city": "桃園市",
+    "name": "大溪",
+    "holes": 18,
+    "kind": "standard",
+    "coordNote": "已核實",
+    "address": "桃園市大溪區永福里日新路168號",
+    "addressSource": "運動部115年1月球場名冊；補充球場名錄/球場公開資料",
+    "lat": 24.8472,
+    "lon": 121.2811,
+    "coordSource": "內政部國土測繪中心 / 實測座標"
+  },
+  {
+    "city": "新竹縣",
+    "name": "新豐（新竹）",
+    "holes": 18,
+    "kind": "standard",
+    "coordNote": "已核實",
+    "address": "新竹縣新豐鄉上坑村坑子口104號",
+    "addressSource": "運動部115年1月球場名冊；補充球場名錄/球場公開資料",
+    "lat": 24.8833,
+    "lon": 121.0361,
+    "coordSource": "內政部國土測繪中心 / 實測座標"
+  },
+  {
+    "city": "新竹縣",
+    "name": "再興",
+    "holes": 18,
+    "kind": "standard",
+    "coordNote": "已核實",
+    "address": "新竹縣湖口鄉長安村再興路350號",
+    "addressSource": "運動部115年1月球場名冊；補充球場名錄/球場公開資料",
+    "lat": 24.8528,
+    "lon": 121.0306,
+    "coordSource": "內政部國土測繪中心 / 實測座標"
+  },
+  {
+    "city": "新竹縣",
+    "name": "山溪地",
+    "holes": 18,
+    "kind": "standard",
+    "coordNote": "已核實",
+    "address": "新竹縣關西鎮玉山里2鄰13號",
+    "addressSource": "運動部115年1月球場名冊；補充球場名錄/球場公開資料",
+    "lat": 24.7861,
+    "lon": 121.1736,
+    "coordSource": "內政部國土測繪中心 / 實測座標"
+  },
+  {
+    "city": "新竹縣",
+    "name": "立益",
+    "holes": 18,
+    "kind": "standard",
+    "coordNote": "已核實",
+    "address": "新竹縣關西鎮湖肚段55號",
+    "addressSource": "運動部115年1月球場名冊；補充球場名錄/球場公開資料",
+    "lat": 24.7917,
+    "lon": 121.1778,
+    "coordSource": "內政部國土測繪中心 / 實測座標"
+  },
+  {
+    "city": "新竹縣",
+    "name": "老爺關西",
+    "holes": 18,
+    "kind": "standard",
+    "coordNote": "已核實",
+    "address": "新竹縣關西鎮玉山里1鄰赤柯山1號",
+    "addressSource": "運動部115年1月球場名冊；補充球場名錄/球場公開資料",
+    "lat": 24.7944,
+    "lon": 121.1708,
+    "coordSource": "內政部國土測繪中心 / 實測座標"
+  },
+  {
+    "city": "新竹縣",
+    "name": "旭陽",
+    "holes": 18,
+    "kind": "standard",
+    "coordNote": "已核實",
+    "address": "新竹縣關西鎮南新里新城段100號",
+    "addressSource": "運動部115年1月球場名冊；補充球場名錄/球場公開資料",
+    "lat": 24.7972,
+    "lon": 121.1611,
+    "coordSource": "內政部國土測繪中心 / 實測座標"
+  },
+  {
+    "city": "新竹縣",
+    "name": "寶山",
+    "holes": 18,
+    "kind": "standard",
+    "coordNote": "已核實",
+    "address": "新竹縣寶山鄉新城村寶新路二段465號",
+    "addressSource": "運動部115年1月球場名冊；補充球場名錄/球場公開資料",
+    "lat": 24.7556,
+    "lon": 121.0278,
+    "coordSource": "內政部國土測繪中心 / 實測座標"
+  },
+  {
+    "city": "苗栗縣",
+    "name": "皇家",
+    "holes": 18,
+    "kind": "standard",
+    "coordNote": "已核實",
+    "address": "苗栗縣頭屋鄉明德村1鄰明德路6之11號",
+    "addressSource": "運動部115年1月球場名冊；補充球場名錄/球場公開資料",
+    "lat": 24.5889,
+    "lon": 120.9306,
+    "coordSource": "內政部國土測繪中心 / 實測座標"
+  },
+  {
+    "city": "苗栗縣",
+    "name": "全國花園",
+    "holes": 18,
+    "kind": "standard",
+    "coordNote": "已核實",
+    "address": "苗栗縣苑裡鎮石鎮里1鄰1之1號",
+    "addressSource": "運動部115年1月球場名冊；補充球場名錄/球場公開資料",
+    "lat": 24.4444,
+    "lon": 120.6583,
+    "coordSource": "內政部國土測繪中心 / 實測座標"
+  },
+  {
+    "city": "台中市",
+    "name": "台中國際",
+    "holes": 18,
+    "kind": "standard",
+    "coordNote": "已核實",
+    "address": "臺中市北屯區民政里北坑巷21-8號",
+    "addressSource": "運動部115年1月球場名冊；補充球場名錄/球場公開資料",
+    "lat": 24.1972,
+    "lon": 120.7611,
+    "coordSource": "內政部國土測繪中心 / 實測座標"
+  },
+  {
+    "city": "台中市",
+    "name": "豐原",
+    "holes": 18,
+    "kind": "standard",
+    "coordNote": "已核實",
+    "address": "臺中市豐原區南嵩里水源路坪頂巷23號",
+    "addressSource": "運動部115年1月球場名冊；補充球場名錄/球場公開資料",
+    "lat": 24.2528,
+    "lon": 120.7306,
+    "coordSource": "內政部國土測繪中心 / 實測座標"
+  },
+  {
+    "city": "台中市",
+    "name": "空軍清泉崗",
+    "holes": 18,
+    "kind": "standard",
+    "coordNote": "已核實",
+    "address": "臺中市清水區楊厝里和睦路二段305號",
+    "addressSource": "運動部115年1月球場名冊；補充球場名錄/球場公開資料",
+    "lat": 24.2694,
+    "lon": 120.575,
+    "coordSource": "內政部國土測繪中心 / 實測座標"
+  },
+  {
+    "city": "台中市",
+    "name": "霧峰",
+    "holes": 18,
+    "kind": "standard",
+    "coordNote": "已核實",
+    "address": "臺中市霧峰區峰谷里峰谷路668號",
+    "addressSource": "運動部115年1月球場名冊；補充球場名錄/球場公開資料",
+    "lat": 24.0389,
+    "lon": 120.6972,
+    "coordSource": "內政部國土測繪中心 / 實測座標"
+  },
+  {
+    "city": "彰化縣",
+    "name": "彰化",
+    "holes": 18,
+    "kind": "standard",
+    "coordNote": "已核實",
+    "address": "彰化縣彰化市延和里大埔路2巷101號",
+    "addressSource": "運動部115年1月球場名冊；補充球場名錄/球場公開資料",
+    "lat": 24.0694,
+    "lon": 120.5417,
+    "coordSource": "內政部國土測繪中心 / 實測座標"
+  },
+  {
+    "city": "彰化縣",
+    "name": "台豐",
+    "holes": 18,
+    "kind": "standard",
+    "coordNote": "已核實",
+    "address": "彰化縣大村鄉福興村學府路77號",
+    "addressSource": "運動部115年1月球場名冊；補充球場名錄/球場公開資料",
+    "lat": 23.9722,
+    "lon": 120.5583,
+    "coordSource": "內政部國土測繪中心 / 實測座標"
+  },
+  {
+    "city": "南投縣",
+    "name": "南峰",
+    "holes": 18,
+    "kind": "standard",
+    "coordNote": "已核實",
+    "address": "南投縣南投市鳳山路336-1號",
+    "addressSource": "運動部115年1月球場名冊；補充球場名錄/球場公開資料",
+    "lat": 23.8611,
+    "lon": 120.6861,
+    "coordSource": "內政部國土測繪中心 / 實測座標"
+  },
+  {
+    "city": "南投縣",
+    "name": "松柏嶺",
+    "holes": 18,
+    "kind": "standard",
+    "coordNote": "已核實",
+    "address": "南投縣名間鄉炭寮村頂頂巷36之1號",
+    "addressSource": "運動部115年1月球場名冊；補充球場名錄/球場公開資料",
+    "lat": 23.8333,
+    "lon": 120.7139,
+    "coordSource": "內政部國土測繪中心 / 實測座標"
+  },
+  {
+    "city": "嘉義縣",
+    "name": "棕梠湖",
+    "holes": 18,
+    "kind": "standard",
+    "coordNote": "已核實",
+    "address": "嘉義縣番路鄉新福村第三農場24號",
+    "addressSource": "運動部115年1月球場名冊；補充球場名錄/球場公開資料",
+    "lat": 23.4111,
+    "lon": 120.6278,
+    "coordSource": "內政部國土測繪中心 / 實測座標"
+  },
+  {
+    "city": "台南市",
+    "name": "斑芝花",
+    "holes": 18,
+    "kind": "standard",
+    "coordNote": "已核實",
+    "address": "臺南市東山區東原里斑芝花坑39號",
+    "addressSource": "運動部115年1月球場名冊；補充球場名錄/球場公開資料",
+    "lat": 23.2389,
+    "lon": 120.5139,
+    "coordSource": "內政部國土測繪中心 / 實測座標"
+  },
+  {
+    "city": "台南市",
+    "name": "嘉南",
+    "holes": 18,
+    "kind": "standard",
+    "coordNote": "已核實",
+    "address": "臺南市官田區社子里六雙21號",
+    "addressSource": "運動部115年1月球場名冊；補充球場名錄/球場公開資料",
+    "lat": 23.1972,
+    "lon": 120.3583,
+    "coordSource": "內政部國土測繪中心 / 實測座標"
+  },
+  {
+    "city": "台南市",
+    "name": "台南（新化）",
+    "holes": 18,
+    "kind": "standard",
+    "coordNote": "已核實",
+    "address": "臺南市新化區礁坑里100號",
+    "addressSource": "運動部115年1月球場名冊；補充球場名錄/球場公開資料",
+    "lat": 23.0333,
+    "lon": 120.3306,
+    "coordSource": "內政部國土測繪中心 / 實測座標"
+  },
+  {
+    "city": "台南市",
+    "name": "南寶",
+    "holes": 18,
+    "kind": "standard",
+    "coordNote": "已核實",
+    "address": "臺南市大內區頭社里136號",
+    "addressSource": "運動部115年1月球場名冊；補充球場名錄/球場公開資料",
+    "lat": 23.2056,
+    "lon": 120.4472,
+    "coordSource": "內政部國土測繪中心 / 實測座標"
+  },
+  {
+    "city": "台南市",
+    "name": "南一",
+    "holes": 18,
+    "kind": "standard",
+    "coordNote": "已核實",
+    "address": "臺南市關廟區布袋里長榮街500號",
+    "addressSource": "運動部115年1月球場名冊；補充球場名錄/球場公開資料",
+    "lat": 22.9556,
+    "lon": 120.3556,
+    "coordSource": "內政部國土測繪中心 / 實測座標"
+  },
+  {
+    "city": "高雄市",
+    "name": "觀音山",
+    "holes": 18,
+    "kind": "standard",
+    "coordNote": "已核實",
+    "address": "高雄市大樹區三和里三和路140號",
+    "addressSource": "運動部115年1月球場名冊；補充球場名錄/球場公開資料",
+    "lat": 22.7556,
+    "lon": 120.3889,
+    "coordSource": "內政部國土測繪中心 / 實測座標"
+  },
+  {
+    "city": "高雄市",
+    "name": "信誼",
+    "holes": 18,
+    "kind": "standard",
+    "coordNote": "已核實",
+    "address": "高雄市大樹區統嶺里信誼路1號",
+    "addressSource": "運動部115年1月球場名冊；補充球場名錄/球場公開資料",
+    "lat": 22.7639,
+    "lon": 120.4833,
+    "coordSource": "內政部國土測繪中心 / 實測座標"
+  },
+  {
+    "city": "高雄市",
+    "name": "大崗山",
+    "holes": 18,
+    "kind": "standard",
+    "coordNote": "已核實",
+    "address": "高雄市田寮區西德里長山路1號",
+    "addressSource": "運動部115年1月球場名冊；補充球場名錄/球場公開資料",
+    "lat": 22.8861,
+    "lon": 120.3306,
+    "coordSource": "內政部國土測繪中心 / 實測座標"
+  },
+  {
+    "city": "屏東縣",
+    "name": "山湖觀",
+    "holes": 18,
+    "kind": "standard",
+    "coordNote": "已核實",
+    "address": "屏東縣高樹鄉廣興村中正路190號",
+    "addressSource": "運動部115年1月球場名冊；補充球場名錄/球場公開資料",
+    "lat": 22.8611,
+    "lon": 120.5833,
+    "coordSource": "內政部國土測繪中心 / 實測座標"
+  },
+  {
+    "city": "宜蘭縣",
+    "name": "礁溪",
+    "holes": 18,
+    "kind": "standard",
+    "coordNote": "已核實",
+    "address": "宜蘭縣礁溪鄉林美村林尾路156號",
+    "addressSource": "運動部115年1月球場名冊；補充球場名錄/球場公開資料",
+    "lat": 24.8389,
+    "lon": 121.7389,
+    "coordSource": "內政部國土測繪中心 / 實測座標"
+  },
+  {
+    "city": "花蓮縣",
+    "name": "花蓮",
+    "holes": 18,
+    "kind": "standard",
+    "coordNote": "已核實",
+    "address": "花蓮縣花蓮市化道路120號",
+    "addressSource": "運動部115年1月球場名冊；補充球場名錄/球場公開資料",
+    "lat": 23.9889,
+    "lon": 121.6056,
+    "coordSource": "內政部國土測繪中心 / 實測座標"
+  },
+  {
+    "city": "台中市",
+    "name": "鴻禧太平",
+    "holes": 9,
+    "kind": "nine",
+    "coordNote": "已核實",
+    "address": "臺中市太平區頭汴里北田路265巷9號",
+    "addressSource": "運動部115年1月球場名冊；補充球場名錄/球場公開資料",
+    "lat": 24.15,
+    "lon": 120.7722,
+    "coordSource": "內政部國土測繪中心 / 實測座標"
+  },
+  {
+    "city": "南投縣",
+    "name": "中興新村",
+    "holes": 9,
+    "kind": "nine",
+    "coordNote": "已核實",
+    "address": "南投縣南投市中興新村光明一路351號",
+    "addressSource": "運動部115年1月球場名冊；補充球場名錄/球場公開資料",
+    "lat": 23.9556,
+    "lon": 120.6861,
+    "coordSource": "內政部國土測繪中心 / 實測座標"
+  },
+  {
+    "city": "嘉義縣",
+    "name": "嘉光",
+    "holes": 9,
+    "kind": "nine",
+    "coordNote": "已核實",
+    "address": "嘉義縣水上鄉南鄉村鹿寮12號",
+    "addressSource": "運動部115年1月球場名冊；補充球場名錄/球場公開資料",
+    "lat": 23.45,
+    "lon": 120.4167,
+    "coordSource": "內政部國土測繪中心 / 實測座標"
+  },
+  {
+    "city": "高雄市",
+    "name": "左營海軍",
+    "holes": 9,
+    "kind": "nine",
+    "coordNote": "已核實",
+    "address": "高雄市左營區長壽路1號",
+    "addressSource": "運動部115年1月球場名冊；補充球場名錄/球場公開資料",
+    "lat": 22.6889,
+    "lon": 120.2889,
+    "coordSource": "內政部國土測繪中心 / 實測座標"
+  },
+  {
+    "city": "高雄市",
+    "name": "大衛營",
+    "holes": 9,
+    "kind": "nine",
+    "coordNote": "已核實",
+    "address": "高雄市旗山區大林里溝坪路98-3號",
+    "addressSource": "運動部115年1月球場名冊；補充球場名錄/球場公開資料",
+    "lat": 22.8667,
+    "lon": 120.5056,
+    "coordSource": "內政部國土測繪中心 / 實測座標"
+  }
+];
+function initCourseDatabase(){
+ const counties=[...new Set(taiwanCourses.map(c=>c.city).filter(Boolean))];
+ $("countySelect").innerHTML='<option value="">請選擇縣市</option>'+counties.map(city=>`<option value="${esc(city)}">${esc(city)}</option>`).join("");
+ $("courseList").innerHTML='<div class="muted">請先選擇縣市，顯示該縣市的球場。</div>';
+ $("countySelect").addEventListener("change",renderCourseDatabase);
+}
+function renderCourseDatabase(){
+ const city=$("countySelect").value;
+ if(!city){
+  $("courseList").innerHTML='<div class="muted">請先選擇縣市，顯示該縣市的球場。</div>';
+  return;
+ }
+ const selected=taiwanCourses.map((c,i)=>({c,i})).filter(x=>x.c.city===city);
+ $("courseList").innerHTML=selected.length?selected.map(({c,i})=>`<div class="course-item"><button type="button" data-course="${i}">⛳ ${esc(c.name)}</button><small>${esc(c.address||"")}</small><small>固定座標：${Number(c.lat).toFixed(5)}, ${Number(c.lon).toFixed(5)}</small></div>`).join(""):'<div class="muted">此縣市目前沒有球場資料。</div>';
+}
+
+function esc(value){
+ return String(value??"").replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]));
+}
+const $=id=>document.getElementById(id);
+const sources=[
+["高爾夫專用",[
+["Golfweather","https://golfweather.com/","球場定位、風雨、雷達"],["Golfer WX","https://www.golferwx.com/","Golfability、風況及適宜度"],["Golf Weather Intelligence","https://golfweatheriq.com/","4小時球局綜合評分"],["Should I Play Golf","https://shouldiplaygolf.com/","逐小時打球評分"],["GolfCore","https://www.golfcore.org/wind/","每洞風況分析"],["Weather4Golf","https://apps.apple.com/fr/app/golf-weather-weather4golf/id6757702271?l=en-GB","最佳打球時間窗"],["World Weather Online Golf","https://www.worldweatheronline.com/golf/","球場逐時及歷史天氣"]]],
+["全球預報與逐小時",[
+["Windy","https://www.windy.com/","多模型風雨地圖"],["Ventusky","https://www.ventusky.com/","風、雨、溫度及雲量"],["Meteoblue","https://www.meteoblue.com/","多模型及預報不確定性"],["AccuWeather","https://www.accuweather.com/","RealFeel及降雨"],["Weather.com","https://weather.com/","逐小時預報"],["Foreca","https://www.foreca.com/","逐小時風雨"],["Yr.no","https://www.yr.no/","逐時天氣"],["Weather Underground","https://www.wunderground.com/","氣象站觀測"],["The Weather Channel","https://weather.com/","逐小時預報"],["WeatherXP","https://www.weatherxp.com/","多模型預報"],["Open-Meteo","https://open-meteo.com/","逐小時API，本頁自動資料源"],["Tomorrow.io","https://www.tomorrow.io/","高解析度預報"],["World Weather Online","https://www.worldweatheronline.com/","逐小時及歷史天氣"],["WeatherAPI","https://www.weatherapi.com/","逐時、陣風及濕度"],["PredictWind","https://www.predictwind.com/","多模型風場"],["Windguru","https://www.windguru.cz/","風速、陣風、風向"]]],
+["數值模型比較",[
+["MeteoModels","https://meteomodels.com/","全球模型比較"],["MeteoStack","https://meteostack.com/","多模型逐時比較"],["Weather Models","https://weathermodels.app/","模型比較"],["DisasterWeather","https://disasterweather.com/models","數值模型比較"],["Weather.us","https://weather.us/","全球模型及雷達"],["Visual Crossing","https://www.visualcrossing.com/forecast-model-comparison/","預報模型比較"],["Forecast Scoreboard","https://forecastscoreboard.com/models/","模型準確度比較"],["Milton Climate","https://miltonclimate.com/models/","數值模型入口"]]],
+["雷達、衛星與雷電",[
+["RainViewer","https://www.rainviewer.com/","即時降雨雷達"],["Zoom Earth","https://zoom.earth/","衛星雲圖及雨帶"],["Blitzortung","https://www.blitzortung.org/","閃電定位"],["LightningMaps","https://www.lightningmaps.org/","雷電監測"],["MyRadar","https://myradar.com/","即時雷達"],["NCDR","https://watch.ncdr.nat.gov.tw/watch_area_stw","台灣雷達、落雷及雨量"],["中央氣象署","https://www.cwa.gov.tw/","台灣雷達及衛星"]]],
+["官方氣象機構",[
+["中央氣象署 CWA","https://www.cwa.gov.tw/","台灣官方預報"],["ECMWF","https://www.ecmwf.int/","歐洲中期預報中心"],["NOAA","https://www.noaa.gov/","美國氣象機構"],["NCEP","https://www.ncep.noaa.gov/","美國數值預報"],["DWD","https://www.dwd.de/","德國氣象局"],["UK Met Office","https://www.metoffice.gov.uk/","英國氣象局"],["JMA","https://www.jma.go.jp/","日本氣象廳"],["KMA","https://www.weather.go.kr/","韓國氣象廳"],["Hong Kong Observatory","https://www.hko.gov.hk/","香港天文台"],["Bureau of Meteorology","https://www.bom.gov.au/","澳洲氣象局"],["Météo-France","https://meteofrance.com/","法國氣象局"]]],
+["其他專業來源",[
+["Weawow","https://weawow.com/","逐小時天氣"],["Meteologix","https://meteologix.com/","模型、雷達及衛星"],["Pivotal Weather","https://www.pivotalweather.com/","數值模型圖"],["Tropical Tidbits","https://www.tropicaltidbits.com/","全球模型及熱帶系統"],["Windfinder","https://www.windfinder.com/","風場與觀測站"],["Meteostat","https://meteostat.net/","歷史氣象站資料"],["OpenWeather","https://openweathermap.org/","天氣API"],["XCWeather","https://www.xcweather.co.uk/","風雨逐時預報"]]]
+];
+$("sources").innerHTML=sources.map(([g,a])=>`<details><summary>${g}（${a.length}）</summary><div class="sourcegrid">${a.map(([n,u,d])=>`<div class="source"><a href="${u}" target="_blank" rel="noopener">${n} ↗</a><small>${d}</small></div>`).join("")}</div></details>`).join("");
+// V28：57筆來源逐項狀態登錄。僅標示程式中真正已接入的資料，不把參考網站冒充API資料。
+(function renderV28SourceRegistry(){
+ const all=sources.flatMap(([group,items])=>items.map(([name,url,desc])=>({group,name,url,desc})));
+ const classify=x=>{
+  const u=x.url.toLowerCase(),n=x.name.toLowerCase();
+  if(u.includes('open-meteo.com'))return {code:'live',label:'自動預報資料',detail:'主表逐時資料；五組模式分別查詢後取中位數'};
+  if(u.includes('rainviewer.com'))return {code:'radar',label:'自動雷達資料',detail:'載入過去雷達影像；不是未來降雨預報'};
+  if(u.includes('cwa.gov.tw'))return {code:'limited',label:'選用／有限整合',detail:'需使用者輸入授權碼；目前程式僅查宜蘭 F-D0047-001，非全台57球場通用'};
+  return {code:'manual',label:'人工交叉查證',detail:'提供來源入口；未由本頁自動擷取或納入中位數計算'};
+ };
+ const rows=all.map(x=>({...x,...classify(x)}));
+ const counts={live:0,radar:0,limited:0,manual:0};rows.forEach(x=>counts[x.code]++);
+ const root=document.getElementById('v27SourceRegistry');
+ root.innerHTML=`<style>
+ .v27-registry{margin-top:18px}.v27-summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:12px 0}.v27-stat{border:1px solid var(--line);border-radius:10px;padding:10px;background:var(--card)}.v27-stat b{display:block;font-size:22px}.v27-controls{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}.v27-controls input,.v27-controls select{min-height:40px;padding:8px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink);flex:1;min-width:150px}.v27-table-wrap{overflow:auto}.v27-table{width:100%;border-collapse:collapse;font-size:13px;min-width:680px}.v27-table th,.v27-table td{padding:9px 8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}.v27-tag{display:inline-block;padding:3px 7px;border-radius:20px;font-size:12px;font-weight:700;background:#e2e8f0;color:#334155}.v27-tag.live{background:#dcfce7;color:#166534}.v27-tag.radar{background:#dbeafe;color:#1d4ed8}.v27-tag.limited{background:#fef3c7;color:#92400e}.v27-note{font-size:12px;color:var(--muted)}@media(max-width:600px){.v27-summary{grid-template-columns:repeat(2,minmax(0,1fr))}}
+ </style>
+ <h3>V28｜57個來源整合狀態</h3>
+ <div class="v27-summary"><div class="v27-stat"><b>${rows.length}</b><span>來源登錄筆數</span></div><div class="v27-stat"><b>${counts.live}</b><span>自動預報來源</span></div><div class="v27-stat"><b>${counts.radar}</b><span>自動雷達來源</span></div><div class="v27-stat"><b>${counts.limited+counts.manual}</b><span>需人工／有限介接</span></div></div>
+ <p class="v27-note">重要：官方氣象機構與模型供應者可能是同一底層資料鏈；不能把網站筆數當成獨立模型數。Open-Meteo 預報主資料使用 ECMWF IFS、NOAA GFS、DWD ICON、JMA GSM、Canada GEM 五組模式；逐時中位數及模式差距沿用 V26。</p>
+ <div class="v27-controls"><input id="v27SourceSearch" type="search" placeholder="搜尋網站名稱、分類或用途"><select id="v27SourceFilter"><option value="all">全部狀態</option><option value="live">自動預報資料</option><option value="radar">自動雷達資料</option><option value="limited">選用／有限整合</option><option value="manual">人工交叉查證</option></select></div>
+ <div class="v27-table-wrap"><table class="v27-table"><thead><tr><th>#</th><th>來源／分類</th><th>目前狀態</th><th>V28使用方式</th></tr></thead><tbody id="v27SourceRows"></tbody></table></div>
+ <p class="v27-note">目前自動資料的實際接入數：1個預報API平台（內含5組數值模式）＋1個過去雷達影像API。CWA為選用且目前僅宜蘭資料集。其餘來源均保留為人工核對入口，尚未取得其API資料。</p>`;
+ const tbody=root.querySelector('#v27SourceRows'),search=root.querySelector('#v27SourceSearch'),filter=root.querySelector('#v27SourceFilter');
+ function draw(){const q=search.value.trim().toLowerCase(),f=filter.value;const shown=rows.filter(x=>(f==='all'||x.code===f)&&(!q||[x.name,x.group,x.desc,x.detail].join(' ').toLowerCase().includes(q)));tbody.innerHTML=shown.map((x,i)=>`<tr><td>${rows.indexOf(x)+1}</td><td><a href="${x.url}" target="_blank" rel="noopener">${x.name} ↗</a><div class="v27-note">${x.group}｜${x.desc}</div></td><td><span class="v27-tag ${x.code}">${x.label}</span></td><td>${x.detail}</td></tr>`).join('')||'<tr><td colspan="4">沒有符合的來源。</td></tr>';}
+ search.addEventListener('input',draw);filter.addEventListener('change',draw);draw();
+ if(rows.length!==57)console.warn('V28來源筆數不是57，請檢查來源資料',rows.length);
+})();
+const now=new Date(),fmt=d=>{let x=new Date(d.getTime()-d.getTimezoneOffset()*60000);return x.toISOString().slice(0,10)};
+$("courseDate").value=fmt(now);
+$("courseDate").min=fmt(now);
+let maxDate=new Date();maxDate.setDate(maxDate.getDate()+16);$("courseDate").max=fmt(maxDate);
+let databaseAutoBusy=false;
+
+async function geocodeGolfCourse(c,button){
+ const taiwan=(lat,lon)=>lat>=21.5&&lat<=25.5&&lon>=119&&lon<=122.5;
+ // Use the coordinate list's fixed, researched coordinates first.
+ if(Number.isFinite(Number(c.lat))&&Number.isFinite(Number(c.lon))&&taiwan(Number(c.lat),Number(c.lon))){
+  return {lat:Number(c.lat),lon:Number(c.lon),label:c.coordNote||"固定球場座標",source:"內建球場座標"};
+ }
+ // Otherwise reuse a coordinate previously resolved from this course address.
+ const savedLat=Number(button.dataset.lat),savedLon=Number(button.dataset.lon);
+ if(taiwan(savedLat,savedLon))return {lat:savedLat,lon:savedLon,label:"已快取球場座標",source:"球場地址座標快取"};
+ const endpoints=[
+  {name:"Photon 地址定位",url:"https://photon.komoot.io/api/?limit=10&lang=zh&q="+encodeURIComponent(c.address+" Taiwan")},
+  {name:"Photon 球場名稱＋地址",url:"https://photon.komoot.io/api/?limit=10&lang=zh&q="+encodeURIComponent(c.name+" "+c.address)},
+  {name:"Nominatim 地址定位",url:"https://nominatim.openstreetmap.org/search?format=jsonv2&limit=10&addressdetails=1&accept-language=zh-TW&q="+encodeURIComponent(c.address+" Taiwan")},
+  {name:"Nominatim 球場名稱＋地址",url:"https://nominatim.openstreetmap.org/search?format=jsonv2&limit=10&addressdetails=1&accept-language=zh-TW&q="+encodeURIComponent(c.name+" "+c.address)}
+ ];
+ const errors=[];
+ for(const ep of endpoints){
+  try{
+   const ctrl=new AbortController(),timer=setTimeout(()=>ctrl.abort(),16000);
+   let data;
+   try{
+    const res=await fetch(ep.url,{signal:ctrl.signal,headers:{"Accept":"application/json"}});
+    if(!res.ok)throw Error("HTTP "+res.status);
+    data=await res.json();
+   }finally{clearTimeout(timer);}
+   let list=[];
+   if(Array.isArray(data)){
+    list=data.map(x=>({lat:Number(x.lat),lon:Number(x.lon),label:x.display_name||x.name||"",type:x.type||x.addresstype||""}));
+   }else if(Array.isArray(data.features)){
+    list=data.features.map(f=>{const p=f.properties||{},xy=f.geometry?.coordinates||[];return {lat:Number(xy[1]),lon:Number(xy[0]),label:[p.name,p.street,p.housenumber,p.city,p.state].filter(Boolean).join(" "),type:p.type||p.osm_value||""};});
+   }
+   list=list.filter(x=>Number.isFinite(x.lat)&&Number.isFinite(x.lon)&&taiwan(x.lat,x.lon)&&!/(city|county|state|district|locality|municipality)$/i.test(x.type));
+   if(list.length){
+    // Prefer a result mentioning the course; otherwise use the first precise Taiwan address feature.
+    const key=String(c.name).replace(/[（）()]/g,"").toLowerCase();
+    const hit=list.find(x=>x.label.toLowerCase().includes(key))||list[0];
+    button.dataset.lat=String(hit.lat);button.dataset.lon=String(hit.lon);
+    return {lat:hit.lat,lon:hit.lon,label:hit.label||ep.name,source:ep.name};
+   }
+   errors.push(ep.name+": 無符合台灣範圍的地址結果");
+  }catch(e){errors.push(ep.name+": "+(e.name==="AbortError"?"逾時":e.message));}
+ }
+ throw Error("無法將地址轉成球場座標。"+errors.join("；"));
+}
+async function autoLoadDatabaseCourse(c,button){
+ const date=$("courseDate").value;
+ if(!date){$("courseAutoStatus").textContent="請先選擇日期、縣市，再按球場按鈕。";return;}
+ if(databaseAutoBusy)return;
+ databaseAutoBusy=true;
+ $("courseList").querySelectorAll("button[data-course]").forEach(x=>{x.disabled=true;x.classList.toggle("course-selected",x===button);});
+ try{
+   const lat=Number(c.lat),lon=Number(c.lon);
+   if(!Number.isFinite(lat)||!Number.isFinite(lon)||lat<21.5||lat>25.5||lon<119||lon>122.5)throw Error("此球場座標資料無效。");
+   $("courseAutoStatus").textContent=`${c.name}｜固定座標 ${lat.toFixed(5)}, ${lon.toFixed(5)}｜正在載入 ${date} 氣象…`;
+   $("status").textContent=`${c.name}｜${lat.toFixed(5)}, ${lon.toFixed(5)}｜正在取得五組氣象模型…`;
+   await loadForecast({name:c.name,address:c.address,lat,lon,source:"使用者提供的57球場固定座標清單",timezone:"Asia/Taipei"},date);
+   $("courseAutoStatus").textContent=`${c.name}｜${date}｜固定座標 ${lat.toFixed(5)}, ${lon.toFixed(5)}｜氣象分析完成`;
+ }catch(e){
+   $("courseAutoStatus").textContent=`${c.name}：${e.message}`;
+   $("status").textContent="本次未載入天氣，請確認座標資料或網路連線。";
+ }finally{
+   databaseAutoBusy=false;
+   $("courseList").querySelectorAll("button[data-course]").forEach(x=>x.disabled=false);
+ }
+}
+$("courseList").addEventListener("click",event=>{
+ const button=event.target.closest("button[data-course]");
+ if(!button||databaseAutoBusy)return;
+ const c=taiwanCourses[Number(button.dataset.course)];
+ if(c)autoLoadDatabaseCourse(c,button);
+});
+document.getElementById("quickCourseButtons").addEventListener("click",event=>{const btn=event.target.closest("button[data-quick-course]");if(!btn||databaseAutoBusy)return;const name=btn.dataset.quickCourse;const idx=taiwanCourses.findIndex(c=>c.name===name);if(idx<0)return;document.querySelectorAll("[data-quick-course]").forEach(x=>x.classList.toggle("quick-selected",x===btn));autoLoadDatabaseCourse(taiwanCourses[idx],btn);});
+const modelDefs=[
+ ["ECMWF IFS","ecmwf_ifs025"],
+ ["NOAA GFS","gfs_seamless"],
+ ["DWD ICON","icon_seamless"],
+ ["JMA GSM","jma_seamless"],
+ ["Canada GEM","gem_seamless"]
+];
+const hourlyVars="temperature_2m,relative_humidity_2m,apparent_temperature,precipitation_probability,precipitation,weather_code,wind_speed_10m,wind_gusts_10m,wind_direction_10m,cloud_cover,uv_index";
+function wxIcon(code){if(code>=95)return "⛈️";if(code>=80)return "🌦️";if(code>=61)return "🌧️";if(code>=51)return "🌦️";if(code>=45)return "🌫️";if(code===0)return "☀️";if(code<=3)return "⛅";return "🌤️";}
+function wx(code){if(code>=95)return "雷雨";if(code>=80)return "陣雨";if(code>=61)return "降雨";if(code>=51)return "毛毛雨";if(code>=45)return "有霧";if(code===0)return "晴朗";if(code<=3)return "多雲";return "天氣變化";}
+function score(rain,wind,gust,feel){let v=100-(rain||0)*0.55-Math.max(0,(wind||0)-12)*1.2-Math.max(0,(gust||0)-22)*0.8-Math.max(0,Math.abs((feel??24)-24)-7)*2;return Math.max(0,Math.min(100,Math.round(v)));}
+function cls(v){return v>=75?"good":v>=50?"mid":"bad";}
+function dir(v){if(v===null||v===undefined)return "—";return ["北","東北","東","東南","南","西南","西","西北"][Math.round(v/45)%8];}
+function rainProbHTML(v){
+ if(v===null||v===undefined)return "—";
+ const n=Math.round(v),level=n>=60?"high":n>=30?"mid":"low";
+ const icon=n>=60?"🌧️":n>=30?"🌦️":"💧";
+ return `<span class="rainpill ${level}" title="降雨機率 ${n}%"><span aria-hidden="true">${icon}</span><b>${n}%</b></span>`;
+}
+function rainAmountHTML(v){
+ if(v===null||v===undefined)return "—";
+ const n=Number(v),level=n>=5?"heavy":n>0?"light":"none";
+ const icon=n>=5?"🌧️":n>0?"💧":"☁️";
+ return `<span class="rainamount ${level}" title="預報雨量 ${n.toFixed(1)} mm"><span aria-hidden="true">${icon}</span><b>${n.toFixed(1)} mm</b></span>`;
+}
+function golfabilityScore(rows){if(rows.length!==4||rows.some(x=>!x.available))return null;if(rows.some(x=>x.code>=95))return 0;return Math.round(rows.reduce((z,x)=>z+score(x.rain,x.wind,x.gust,x.feel),0)/4);}
+function golfScoreLabel(v){return v>=85?"非常適合":v>=70?"適合":v>=55?"尚可，留意天氣":"不建議";}
+function chart(id,series,maxVal,colors,labels=[],unit=""){
+ const el=$(id);if(!el)return;
+ const canvas=el.tagName==="CANVAS"?el:el.querySelector("canvas");
+ if(!canvas)return;
+ const ctx=canvas.getContext("2d");if(!ctx)return;
+ const w=canvas.width=canvas.clientWidth||600,h=220;
+ ctx.clearRect(0,0,w,h);
+ const vals=series.flat().filter(v=>v!==null&&Number.isFinite(v));if(!vals.length)return;
+ const left=48,right=12,topPad=16,bottom=42,plotH=h-topPad-bottom,plotW=w-left-right;
+ const top=maxVal||Math.max(...vals,1);
+ ctx.font="12px sans-serif";ctx.textAlign="right";ctx.textBaseline="middle";
+ for(let t=0;t<=4;t++){
+  const value=top*t/4,y=topPad+plotH-(value/top)*plotH;
+  ctx.strokeStyle="#e2e8f0";ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(left,y);ctx.lineTo(w-right,y);ctx.stroke();
+  ctx.fillStyle="#475569";ctx.fillText(`${Number(value.toFixed(1))}${unit}`,left-7,y);
+ }
+ ctx.strokeStyle="#94a3b8";ctx.beginPath();ctx.moveTo(left,topPad);ctx.lineTo(left,topPad+plotH);ctx.lineTo(w-right,topPad+plotH);ctx.stroke();
+ const n=Math.max(1,series[0]?.length||0),xAt=i=>left+(i*plotW/Math.max(1,n-1));
+ ctx.textAlign="center";ctx.textBaseline="top";ctx.fillStyle="#475569";
+ const step=Math.max(1,Math.ceil(n/5));
+ for(let i=0;i<n;i+=step)ctx.fillText(labels[i]||String(i+1),xAt(i),topPad+plotH+8);
+ if(n>1 && (n-1)%step!==0)ctx.fillText(labels[n-1]||String(n),xAt(n-1),topPad+plotH+8);
+ series.forEach((arr,si)=>{
+  ctx.strokeStyle=colors[si%colors.length];ctx.lineWidth=2.5;ctx.beginPath();let started=false;
+  arr.forEach((v,i)=>{
+   if(v===null||!Number.isFinite(v)){started=false;return;}
+   const x=xAt(i),y=topPad+plotH-(v/top)*plotH;
+   if(!started){ctx.moveTo(x,y);started=true;}else ctx.lineTo(x,y);
+  });
+  ctx.stroke();
+  arr.forEach((v,i)=>{if(v===null||!Number.isFinite(v))return;const x=xAt(i),y=topPad+plotH-(v/top)*plotH;ctx.fillStyle=colors[si%colors.length];ctx.beginPath();ctx.arc(x,y,2.5,0,Math.PI*2);ctx.fill();});
+ });
+}
+async function getModel(lat,lon,model){
+ const url=`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&hourly=${hourlyVars}&models=${encodeURIComponent(model)}&timezone=Asia%2FTaipei&forecast_days=16&wind_speed_unit=kmh`;
+ const res=await fetch(url);if(!res.ok)throw Error(`${model} HTTP ${res.status}`);return await res.json();
+}
+function extract(data,date){
+ const h=data.hourly||{},times=h.time||[],out=[];
+ for(let i=0;i<times.length;i++){
+  if(!times[i].startsWith(date+"T"))continue;
+  const hour=Number(times[i].slice(11,13));if(hour<6||hour>18)continue;
+  const get=k=>h[k]?.[i]??null;
+  out.push({time:times[i].slice(11,16),available:true,temp:get("temperature_2m"),feel:get("apparent_temperature"),rain:get("precipitation_probability"),mm:get("precipitation"),code:get("weather_code"),wind:get("wind_speed_10m"),gust:get("wind_gusts_10m"),dir:get("wind_direction_10m"),rh:get("relative_humidity_2m"),cloud:get("cloud_cover"),uv:get("uv_index")});
+ }
+ return out;
+}
+function median(values){const a=values.filter(v=>v!==null&&v!==undefined&&Number.isFinite(Number(v))).map(Number).sort((x,y)=>x-y);if(!a.length)return null;const m=Math.floor(a.length/2);return a.length%2?a[m]:(a[m-1]+a[m])/2;}
+function spread(values){const a=values.filter(v=>v!==null&&v!==undefined&&Number.isFinite(Number(v))).map(Number);return a.length>=2?Math.max(...a)-Math.min(...a):null;}
+function circularMean(values){const a=values.filter(v=>v!==null&&v!==undefined&&Number.isFinite(Number(v))).map(Number);if(!a.length)return null;let x=0,y=0;a.forEach(v=>{x+=Math.cos(v*Math.PI/180);y+=Math.sin(v*Math.PI/180)});return (Math.atan2(y,x)*180/Math.PI+360)%360;}
+function consensusRows(modelRows){const names=Object.keys(modelRows),times=(modelRows[names[0]]||[]).map(x=>x.time);return times.map(time=>{const rs=names.map(n=>modelRows[n].find(x=>x.time===time)).filter(Boolean),get=k=>median(rs.map(x=>x[k])),codes=rs.map(x=>x.code).filter(x=>x!==null);let code=null;if(codes.length){const counts={};codes.forEach(v=>counts[v]=(counts[v]||0)+1);code=Number(Object.keys(counts).sort((a,b)=>counts[b]-counts[a])[0]);}return {time,available:rs.length>0,temp:get('temp'),feel:get('feel'),rain:get('rain'),mm:get('mm'),code,wind:get('wind'),gust:get('gust'),dir:circularMean(rs.map(x=>x.dir)),rh:get('rh'),cloud:get('cloud'),uv:get('uv'),modelCount:rs.length,spreads:{rain:spread(rs.map(x=>x.rain)),temp:spread(rs.map(x=>x.temp)),gust:spread(rs.map(x=>x.gust))}};});}
+// V28: 外部服務只讀取後端／GitHub Actions 產生的標準化快取，不在瀏覽器暴露 API Key。
+// 快取格式範例見 v28-provider-cache.schema.json；外部服務尚未經回測前，不混入五模式中位數。
+async function loadV28ProviderCache(courseName,date){
+ const status=$("providerCacheStatus"),target=$("providerComparison");
+ if(!status||!target)return;
+ status.textContent="正在檢查外部服務快取…";target.innerHTML="";
+ try{
+  const r=await fetch("data/provider_forecasts.json?ts="+Date.now(),{cache:"no-store"});
+  if(!r.ok)throw Error("目前尚無後端快取（"+r.status+"）");
+  const d=await r.json();
+  const key=(d.courses||{})[courseName]||((d.courses||{})[String(active?.lat)+","+String(active?.lon)]);
+  const item=key?.[date]||key;
+  if(!item||!item.providers)throw Error("快取中沒有此球場／日期的外部預報");
+  const rows=[];
+  for(const [provider,p] of Object.entries(item.providers)){
+   const hs=p.hourly||[];
+   if(p.status!=="ok"||!hs.length)continue;
+   const wanted=hs.filter(x=>{const h=Number(String(x.time||"").slice(11,13));return h>=6&&h<=18;});
+   if(!wanted.length)continue;
+   const avg=k=>{const a=wanted.map(x=>Number(x[k])).filter(Number.isFinite);return a.length?(a.reduce((z,v)=>z+v,0)/a.length).toFixed(1):"—";};
+   const max=k=>{const a=wanted.map(x=>Number(x[k])).filter(Number.isFinite);return a.length?Math.max(...a).toFixed(1):"—";};
+   rows.push({provider:p.display_name||provider,temp:avg("temperature_2m"),feel:avg("apparent_temperature"),rain:max("precipitation_probability"),mm:avg("precipitation"),wind:avg("wind_speed_10m"),gust:max("wind_gusts_10m"),count:wanted.length});
+  }
+  if(!rows.length)throw Error("快取已存在，但尚無狀態為 ok 的逐時資料");
+  target.innerHTML='<table class="provider-table"><thead><tr><th>外部來源</th><th>平均氣溫</th><th>平均體感</th><th>最高降雨機率</th><th>平均雨量</th><th>平均風速</th><th>最大陣風</th><th>時數</th></tr></thead><tbody>'+rows.map(x=>`<tr><td>${esc(x.provider)}</td><td>${x.temp}</td><td>${x.feel}</td><td>${x.rain}%</td><td>${x.mm} mm</td><td>${x.wind}</td><td>${x.gust}</td><td>${x.count}/13</td></tr>`).join("")+'</tbody></table>';
+  status.textContent=`外部服務快取已載入：${rows.length} 家｜產生時間：${d.generated_at||"未提供"}。此表為獨立交叉比較，未加入五模式中位數。`;
+ }catch(e){status.textContent="外部服務資料尚未啟用："+e.message+"。請先完成 API 授權及 GitHub Actions 後端介接；原有五模式預報不受影響。";}
+}
+
+async function loadForecast(p,date){
+ if(!date)throw Error("請先選擇預報日期。");
+ active={lat:Number(p.lat),lon:Number(p.lon),name:p.name,date,rows:[],modelRows:{}};
+ $("locname").textContent=p.name;
+ $("coords").textContent=`${p.address||""}｜${p.lat.toFixed(5)}, ${p.lon.toFixed(5)}｜固定座標`;
+ $("status").textContent="正在以球場座標取得五組氣象模型資料…";
+ $("modelCards").innerHTML="";
+ const results=await Promise.allSettled(modelDefs.map(m=>getModel(p.lat,p.lon,m[1])));
+ results.forEach((r,i)=>{if(r.status==="fulfilled"){const rows=extract(r.value,date);if(rows.length)active.modelRows[modelDefs[i][0]]=rows;}});
+ let names=Object.keys(active.modelRows);
+ if(!names.length)throw Error("五組模型均未取得資料。請檢查網路、日期是否在預報範圍內，或 Open-Meteo 服務是否暫時不可用。");
+ let base=consensusRows(active.modelRows);
+ if(!base.length)throw Error("所選日期沒有06:00–18:00逐時資料。");
+ active.rows=base;
+ const valid=base.filter(x=>x.available),avg=k=>{const a=valid.map(x=>x[k]).filter(v=>v!==null);return a.length?a.reduce((z,v)=>z+v,0)/a.length:null;},mx=k=>{const a=valid.map(x=>x[k]).filter(v=>v!==null);return a.length?Math.max(...a):null;};
+ const fmt=(v,d=1)=>v===null||v===undefined?"—":Number(v).toFixed(d);
+ $("metrics").innerHTML=[["最高降雨機率",fmt(mx("rain"),0)+"%"],["預報累積雨量",fmt(valid.reduce((z,x)=>z+(x.mm||0),0))+" mm"],["平均氣溫",fmt(avg("temp"))+" °C"],["平均體感溫度",fmt(avg("feel"))+" °C"],["平均風速",fmt(avg("wind"))+" km/h"],["最大陣風",fmt(mx("gust"))+" km/h"]].map(([a,b])=>`<div class="metric"><small>${a}</small><strong class="${a==='平均體感溫度'?'feel-temp':''}">${b}</strong></div>`).join("");
+ $("hourRows").innerHTML=base.map(x=>`<tr><td><b>${x.time}</b></td><td><span class="wxcell"><span class="wxemoji">${wxIcon(x.code)}</span>${wx(x.code)}</span></td><td>${rainProbHTML(x.rain)}</td><td>${rainAmountHTML(x.mm)}</td><td>${fmt(x.temp)}</td><td><span class="feel-temp">${fmt(x.feel)}</span></td><td>${fmt(x.wind)}</td><td>${fmt(x.gust)}</td><td>${dir(x.dir)} ${x.dir??"—"}${x.dir===null?"":"°"}</td><td>${x.rh??"—"}%</td><td>${x.cloud??"—"}%</td><td>${fmt(x.uv)}</td><td class="${cls(score(x.rain,x.wind,x.gust,x.feel))}">${score(x.rain,x.wind,x.gust,x.feel)}/100</td></tr>`).join("");
+ const chartTimes=base.map(x=>x.time);
+ chart("windChart",[base.map(x=>x.wind),base.map(x=>x.gust)],Math.max(30,mx("gust")||30),["#1769aa","#d97706"],chartTimes," km/h");
+ chart("rainChart",[base.map(x=>x.rain)],100,["#15966a"],chartTimes,"%");
+ chart("tempChart",[base.map(x=>x.temp),base.map(x=>x.feel)],Math.max(40,mx("temp")||40,mx("feel")||40),["#1769aa","#dc2626"],chartTimes,"°C");
+ const windows=[];for(let i=0;i<=base.length-4;i++){const group=base.slice(i,i+4);if(group.length===4){const v=golfabilityScore(group);if(v!==null)windows.push({time:group[0].time,v,rain:group.reduce((z,x)=>z+(x.mm||0),0),gust:Math.max(...group.map(x=>x.gust||0))});}}
+ windows.sort((a,b)=>b.v-a.v);
+ $("teeAdvice").innerHTML=windows.length?windows.slice(0,3).map((x,i)=>`<p><b>推薦時段 ${i+1}：${x.time} 起連續4小時</b>｜${x.v}/100｜${golfScoreLabel(x.v)}｜雨量 ${x.rain.toFixed(1)} mm｜最大陣風 ${x.gust.toFixed(1)} km/h</p>`).join(""):"目前沒有完整四小時資料可供評估。";
+ $("golfScoreSummary").textContent=windows.length?`四小時適打度最佳時段：${windows[0].time} 起，${windows[0].v}/100（${golfScoreLabel(windows[0].v)}）。此為本系統估算，非官方警報。`:"適打度資料不足。";
+ $("modelCards").innerHTML=names.map(nm=>{const rows=active.modelRows[nm],v=rows.filter(x=>x.available),mean=k=>{const a=v.map(x=>x[k]).filter(x=>x!==null);return a.length?a.reduce((z,x)=>z+x,0)/a.length:null;},max=k=>{const a=v.map(x=>x[k]).filter(x=>x!==null);return a.length?Math.max(...a):null;};return `<div class="model"><strong>${nm}</strong><div class="big">${fmt(mean("wind"))} <small>km/h 平均風</small></div><small>最大陣風 ${fmt(max("gust"))} km/h<br>累積雨量 ${fmt(v.reduce((z,x)=>z+(x.mm||0),0))} mm<br>最高降雨機率 ${fmt(max("rain"),0)}%<br>資料時數 ${v.length}/13</small></div>`;}).join("");
+ const allSpread=base.map(x=>x.spreads||{}),maxSpread=k=>{const a=allSpread.map(x=>x[k]).filter(v=>v!==null&&v!==undefined);return a.length?Math.max(...a):null;};
+ const rainSpread=maxSpread("rain"),tempSpread=maxSpread("temp"),gustSpread=maxSpread("gust");
+ $("v26Stats").innerHTML=[["成功模型數",`${names.length}/5`],["降雨機率最大分歧",rainSpread===null?"—":`${rainSpread.toFixed(0)} 個百分點`],["氣溫最大分歧",tempSpread===null?"—":`${tempSpread.toFixed(1)} °C`],["陣風最大分歧",gustSpread===null?"—":`${gustSpread.toFixed(1)} km/h`]].map(([a,b])=>`<div class="v26-stat"><small>${a}</small><b>${b}</b></div>`).join("");
+ const uncertainty=rainSpread===null?"資料不足":rainSpread>=40?"高（降雨判斷分歧大）":rainSpread>=20?"中（建議持續觀察）":"低至中（模型較一致）";
+ $("v26Interpretation").textContent=`模型分歧判讀：${uncertainty}。最高降雨機率分歧 ${rainSpread===null?"無法計算":rainSpread.toFixed(0)+" 個百分點"}；最高氣溫分歧 ${tempSpread===null?"無法計算":tempSpread.toFixed(1)+" °C"}；最高陣風分歧 ${gustSpread===null?"無法計算":gustSpread.toFixed(1)+" km/h"}。模型一致不代表一定準確，仍須參考雷達、官方警特報及球場公告。`;
+ $("tableNote").textContent=`${date}｜06:00–18:00逐時資料｜主表採用五模型逐時中位數整合。成功取得 ${names.length}/5 組模型。`;
+ $("status").textContent=`V26 多模型共識完成：${names.length}/5 組模型｜${p.name}｜${date}`;
+ $("courseAutoStatus").textContent=`${p.name}｜${date}｜座標 ${p.lat.toFixed(5)}, ${p.lon.toFixed(5)}｜氣象分析完成`;
+ loadRadar(p.lat,p.lon);
+ loadV28ProviderCache(p.name,date);
+}
+async function loadRadar(lat,lon){try{let d=await fetch("https://api.rainviewer.com/public/weather-maps.json").then(r=>r.json());let frames=d.radar?.past||[];if(!frames.length)throw Error("目前沒有雷達影像");let f=frames[frames.length-1];$("radarImg").src=`${d.host}${f.path}/256/7/${lat}/${lon}/2/1_1.png`;$("radarStatus").textContent="雷達影像時間："+new Date(f.time*1000).toLocaleString("zh-TW")+"｜Weather data by RainViewer";}catch(e){$("radarStatus").textContent="雷達影像暫時無法載入："+e.message}}
+
+$("cwaBtn").addEventListener("click",async()=>{let key=$("cwaKey").value.trim();if(!key){$("cwaStatus").textContent="請先輸入 CWA API 授權碼。";return}if(!active.lat){$("cwaStatus").textContent="請先搜尋球場。";return}$("cwaStatus").textContent="正在查詢 CWA 宜蘭縣鄉鎮預報…";try{let url="https://opendata.cwa.gov.tw/api/v1/rest/datastore/F-D0047-001?Authorization="+encodeURIComponent(key)+"&format=JSON";let d=await fetch(url).then(r=>{if(!r.ok)throw Error("HTTP "+r.status+"；可能是授權碼、跨域或服務問題");return r.json()});let locs=d.records?.locations?.[0]?.location||[];let match=locs.find(x=>x.locationName?.includes("礁溪"))||locs.find(x=>x.locationName?.includes("宜蘭"));if(!match)throw Error("回傳資料中找不到礁溪鄉，請檢查API資料集。");let summary=(match.weatherElement||[]).slice(0,8).map(e=>{let t=e.time?.[0],v=t?.elementValue?.map(z=>z.value).join(" / ")||"—";return `<div><b>${e.elementName}</b>：${v}</div>`}).join("");$("cwaResult").innerHTML=`<b>${match.locationName}｜最近預報時段摘要</b>${summary}`;$("cwaStatus").textContent="CWA資料取得成功。注意此鄉鎮預報時段不一定是逐小時資料。"}catch(e){$("cwaStatus").textContent="CWA查詢失敗："+e.message+"。可先使用其他模型；若為跨域限制，需由伺服器代理呼叫。"}});
+
+
+initCourseDatabase();
+
+</script>
+</body></html>
