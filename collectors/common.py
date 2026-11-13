@@ -219,11 +219,14 @@ def quality_check(values: dict[str, float | None]) -> tuple[str, list[str]]:
     }
     flags = []
     present = 0
-    for key, value in values.items():
+    # Validate only measured numeric fields. Metadata such as
+    # precipitation_period is intentionally stored alongside measurements
+    # but has no numeric range and must not be treated as a QC variable.
+    for key, (low, high) in bounds.items():
+        value = values.get(key)
         if value is None:
             continue
         present += 1
-        low, high = bounds[key]
         if not low <= value <= high:
             flags.append(f"{key}_out_of_range")
     if flags:
