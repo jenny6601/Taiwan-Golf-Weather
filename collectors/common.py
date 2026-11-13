@@ -96,27 +96,18 @@ def coordinate(station: dict[str, Any]) -> tuple[float | None, float | None]:
     if isinstance(coords, dict):
         coords = [coords]
     lat = lon = None
-    decimal_values = []
+    # Official CWA schema uses StationLatitude / StationLongitude inside
+    # each Coordinates item; prefer WGS84 when both TWD67 and WGS84 exist.
     for item in coords:
-        name = str(item.get("CoordinateName") or item.get("coordinateName") or "").lower()
-        value = as_float(item.get("CoordinateValue") or item.get("coordinateValue"))
-        if value is None:
-            continue
-        fmt = str(item.get("CoordinateFormat") or item.get("coordinateFormat") or "").lower()
-        if "latitude" in name or name in ("lat", "latitude"):
-            lat = value
-        elif "longitude" in name or name in ("lon", "lng", "longitude"):
-            lon = value
-        elif "decimal" in fmt or "wgs84" in name:
-            decimal_values.append(value)
-    # CWA commonly returns WGS84 decimal coordinates as [longitude, latitude].
-    if (lat is None or lon is None) and len(decimal_values) >= 2:
-        lon = lon if lon is not None else decimal_values[0]
-        lat = lat if lat is not None else decimal_values[1]
+        name = str(item.get("CoordinateName") or item.get("coordinateName") or "").upper()
+        item_lat = as_float(item.get("StationLatitude") or item.get("stationLatitude"))
+        item_lon = as_float(item.get("StationLongitude") or item.get("stationLongitude"))
+        if item_lat is not None and item_lon is not None:
+            if name == "WGS84" or lat is None or lon is None:
+                lat, lon = item_lat, item_lon
     lat = lat if lat is not None else as_float(station.get("lat") or station.get("Latitude"))
     lon = lon if lon is not None else as_float(station.get("lon") or station.get("Longitude"))
     return lat, lon
-
 
 def station_timestamp(station: dict[str, Any]) -> datetime | None:
     raw = (
@@ -164,42 +155,58 @@ def haversine_km(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
     return 2 * radius * math.asin(math.sqrt(a))
 
 
-def weather_values(station: dict[str, Any], dataset_code: str) -> dict[str, float | None]:
+def weather_values(station: dict[str, Any], dataset_code: str) -> dict[str, Any]:
     weather = station.get("WeatherElement") or station.get("weatherElement") or {}
-    now = weather.get("Now") or weather.get("now") or {}
     gust = weather.get("GustInfo") or weather.get("gustInfo") or {}
-    peak = gust.get("PeakGustSpeed") or gust.get("peakGustSpeed") or {}
+    peak = gust.get("PeakGustSpeed") or gust.get("peakGustSpeed")
     rain = station.get("RainfallElement") or station.get("rainfallElement") or {}
-    rain_now = rain.get("Now") or rain.get("now") or {}
 
-    precipitation = first_number(
-        nested_get(weather, "Now", "Precipitation"),
-        nested_get(weather, "now", "precipitation"),
-        nested_get(rain, "Now", "Precipitation"),
-        nested_get(rain, "now", "precipitation"),
-        nested_get(weather, "Past10Min", "Precipitation"),
-    )
-
+    precipitation = None
+    precipitation_period = None
     if dataset_code == "O-A0002-001":
-        # Rainfall station product; retain its precipitation without inventing
-        # temperature/wind observations.
-        precipitation = first_number(
-            nested_get(rain, "Now", "Precipitation"),
-            nested_get(rain, "now", "precipitation"),
-            nested_get(station, "RainfallElement", "Now", "Precipitation"),
-            nested_get(station, "WeatherElement", "Now", "Precipitation"),
-            nested_get(station, "RainfallElement", "Past1Hr", "Precipitation"),
-        )
+        # CWA O-A0002 defines rolling accumulation windows. Prefer past 1 hour
+        # for hourly verification; retain the chosen period explicitly.
+        rainfall_windows = [
+            ("Past1hr", "past_1_hour"),
+            ("Past1Hr", "past_1_hour"),
+            ("Past10Min", "past_10_minutes"),
+            ("Past3hr", "past_3_hours"),
+            ("Past6hr", "past_6_hours"),
+            ("Past12hr", "past_12_hours"),
+            ("Past24hr", "past_24_hours"),
+        ]
+        for key, period in rainfall_windows:
+            raw = nested_get(rain, key, "Precipitation")
+            if raw is None:
+                raw = nested_get(rain, key, "precipitation")
+            if raw is not None:
+                if str(raw).strip() == "-98":
+                    precipitation = 0.0
+                else:
+                    precipitation = as_float(raw)
+                precipitation_period = period
+                break
+    else:
+        raw = nested_get(weather, "Now", "Precipitation")
+        if raw is None:
+            raw = nested_get(weather, "now", "precipitation")
+        if raw is not None:
+            precipitation = 0.0 if str(raw).strip() == "-98" else as_float(raw)
+            precipitation_period = "daily_since_00_local"
+
+    wind_direction = first_number(weather.get("WindDirection"), weather.get("windDirection"))
+    if wind_direction == 990:
+        wind_direction = None
 
     return {
         "temperature_c": first_number(weather.get("AirTemperature"), weather.get("airTemperature")),
         "relative_humidity_pct": first_number(weather.get("RelativeHumidity"), weather.get("relativeHumidity")),
         "precipitation_mm": precipitation,
+        "precipitation_period": precipitation_period,
         "wind_speed_ms": first_number(weather.get("WindSpeed"), weather.get("windSpeed")),
-        "wind_gust_ms": first_number(peak, gust.get("PeakGustSpeed"), gust.get("peakGustSpeed"), gust.get("Speed")),
-        "wind_direction_deg": first_number(weather.get("WindDirection"), weather.get("windDirection")),
+        "wind_gust_ms": first_number(peak, gust.get("Speed")),
+        "wind_direction_deg": wind_direction,
     }
-
 
 def quality_check(values: dict[str, float | None]) -> tuple[str, list[str]]:
     bounds = {
