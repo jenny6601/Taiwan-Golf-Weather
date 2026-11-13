@@ -6,7 +6,7 @@
 <html lang="zh-Hant">
 <head>
 <meta charset="utf-8"/><meta content="width=device-width,initial-scale=1" name="viewport"/>
-<title>台灣高爾夫球場天氣預測 V30 完整版</title>
+<title>台灣高爾夫球場天氣預測 V31 修復版</title>
 <style>
 :root{--bg:#f2f5f7;--card:#fff;--ink:#17212b;--muted:#64748b;--line:#dfe6ec;--green:#126b4c;--blue:#1769aa;--amber:#b7791f;--red:#b42318}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,-apple-system,"Noto Sans TC",sans-serif}
@@ -136,7 +136,7 @@ footer{color:var(--muted);font-size:12px;padding:18px 0}
 </style>
 </head>
 <body>
-<header><div class="wrap"><h1>⛳ 台灣高爾夫球場天氣預測V30 完整逐時欄位修正版</h1><p>台灣球場資料庫・縣市篩選・手動座標・氣溫／體感溫度逐時分析</p></div></header>
+<header><div class="wrap"><h1>⛳ 台灣高爾夫球場天氣預測V31｜API穩定性修復版</h1><p>台灣球場資料庫・縣市篩選・手動座標・氣溫／體感溫度逐時分析</p></div></header>
 <main class="wrap">
 <section class="panel" id="coursePickerPanel">
 <h2 style="margin:0 0 10px">選擇日期、縣市，再按球場</h2>
@@ -148,6 +148,7 @@ footer{color:var(--muted);font-size:12px;padding:18px 0}
 </select>
 <div class="muted" id="status" style="margin:8px 0 4px">尚未載入氣象資料。</div>
 <div class="muted" id="courseAutoStatus" style="margin:4px 0 12px">共57座球場。先選日期，再選縣市，最後點選球場按鈕，即以固定座標載入當日天氣。</div>
+<details id="apiDiagnostics" style="margin:8px 0 12px"><summary>API 診斷資訊（載入失敗時展開）</summary><pre id="apiDiagnosticsText" style="white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px;color:#475569">尚未執行 API 請求。</pre></details>
 <div aria-label="57座高爾夫球場" class="course-list" id="courseList"></div>
 <div class="quick-course-wrap"><div class="quick-course-title">⭐ 常用球場（快速選擇）</div><div class="quick-course-buttons" id="quickCourseButtons"><button data-quick-course="東方" type="button">東方</button><button data-quick-course="礁溪" type="button">礁溪</button><button data-quick-course="美麗華" type="button">美麗華</button><button data-quick-course="林口" type="button">林口</button><button data-quick-course="大溪" type="button">大溪</button></div></div>
 </section><section class="card"><h3>① 逐時天氣預報（06:00–18:00）</h3><div class="legend"><span>☀️ 晴朗</span><span>🌤️ 多雲</span><span>🌧️ 下雨</span><span>⛈️ 雷雨</span><span>💧 低降雨機率</span><span>☔ 高降雨機率</span></div><div class="muted" id="tableNote">固定列出06:00至18:00共13個時段。手機同一畫面完整顯示時間、天氣、降雨機率、雨量、氣溫及體感；風速、陣風、風向、濕度、雲量、UV及打球參考分數接續排列在右側，可左右滑動查看。已過去但API沒有回傳的時段會標示「無資料」，不會以推測值補齊。</div><div class="tablewrap hourly-table-wrap"><table id="hourlyForecastTable"><thead><tr><th>🕒 時間</th><th>🌤️ 天氣</th><th>☔ 機率<br>%</th><th>🌧️ 雨量<br>mm</th><th>🌡️ 氣溫<br>°C</th><th>🥵 體感<br>°C</th><th>風速 km/h</th><th>陣風 km/h</th><th>風向</th><th>濕度</th><th>雲量</th><th>UV</th><th>打球參考分數</th></tr></thead><tbody id="hourRows"><tr><td colspan="13">尚無資料</td></tr></tbody></table></div></section><section class="card rain-chart-card"><h3>② 每小時降雨機率圖（%）</h3><canvas height="240" id="rainChart" width="600"></canvas><p class="muted">以系集成員逐時降雨量大於 0.1 mm 的比例估算；這是模式機率，尚非台灣球場歷史校準後的真實機率。</p></section><section class="card rain-chart-card"><h3>③ 每小時預報雨量圖（mm）</h3><canvas height="240" id="rainAmountChart" width="600"></canvas><p class="muted">顯示五個確定性模式逐時雨量中位數；模式範圍另作不確定性參考。</p></section>
@@ -220,7 +221,7 @@ footer{color:var(--muted);font-size:12px;padding:18px 0}
 <section class="card mobile-hide-sources"><h3>氣象來源資料庫（57個）</h3><p class="muted">V28 將原始57筆來源逐筆建立整合狀態。狀態標示代表本頁實際使用方式，不代表網站品質排名；外部參考網站不會被假稱為已自動抓取。</p><div id="sources"></div>
 <div class="v27-registry" id="v27SourceRegistry"></div></section>
 <section class="card mobile-hide-quality"><h3>資料品質、球場搜尋來源與使用限制</h3><ul class="muted"><li>本版球場資料庫內建57座球場地址；選取球場及日期後，以該地址向 OpenStreetMap Nominatim 地理編碼取得座標，再呼叫 Open-Meteo 預報。若地址無法定位，不使用行政區中心點代替。</li><li>OpenStreetMap Nominatim 於使用者選取球場及日期後執行單次地址定位；不做批次請求，遵守服務使用政策及資料來源標示要求。OpenStreetMap 資料採 ODbL 授權。</li><li>V29 降雨機率獨立使用系集成員頻率（每小時&gt;0.1 mm），系集API不可用時退回Best Match系集機率；此仍非以台灣57球場歷史觀測完成校準的真實機率。雨量以五個確定性模式逐時中位數呈現，並列模式範圍。多模型差異越大，預報不確定性越高；尤其台灣複雜地形、季風及局部陣雨情境，不宜只看單一模型。</li><li>本版逐一查詢 ECMWF IFS、NOAA GFS、DWD ICON、JMA GSM、加拿大 GEM 五組模型，氣溫、風等以逐時中位數整合；雨量以逐時中位數及最小–最大範圍呈現；模型來源有不同解析度、更新週期及系統性誤差，且並非完全統計獨立。模型覆蓋範圍、解析度及更新時間不同。</li><li>降雨機率、累積雨量、平均風速及陣風是不同變數，不能互相替代。</li><li>RainViewer雷達免費API適用個人／教育用途，需標示來源，且不保證服務可用性。</li><li>CWA API需授權碼；本版採使用者自行輸入，若瀏覽器跨域限制阻擋，需改用後端代理，不能將授權碼公開放在GitHub。</li><li>預報分數不代表球場可開放或安全。雷電、豪雨、強風警報及球場公告優先；聽到雷聲或有雷電警示時應立即停止戶外活動並依球場指示避難。</li><li>Open-Meteo免費API適用非商業使用；商用或高流量部署請先確認授權及服務條款。</li></ul><p><a href="https://www.openstreetmap.org/copyright" rel="noopener" target="_blank">OpenStreetMap attribution</a> ｜ <a href="https://nominatim.org/release-docs/latest/api/Search/" rel="noopener" target="_blank">Nominatim搜尋文件</a> ｜ <a href="https://open-meteo.com/en/docs/geocoding-api" rel="noopener" target="_blank">Open-Meteo地理編碼文件</a> ｜ <a href="https://open-meteo.com/en/docs" rel="noopener" target="_blank">Open-Meteo預報文件</a> ｜ <a href="https://open-meteo.com/en/docs/ensemble-api" rel="noopener" target="_blank">Open-Meteo系集API文件</a> ｜ <a href="https://www.rainviewer.com/api.html" rel="noopener" target="_blank">RainViewer API文件</a> ｜ <a href="https://opendata.cwa.gov.tw/devManual/description" rel="noopener" target="_blank">CWA API文件</a></p></section>
-<footer>台灣高爾夫球場天氣預測V30 完整逐時欄位修正版｜全台57球場・降雨機率／雨量驗證與校正｜06:00–18:00逐時預報｜資料可能延遲或缺漏，請以官方警特報、即時觀測及球場公告為準。</footer>
+<footer>台灣高爾夫球場天氣預測V31｜API穩定性修復版｜全台57球場・降雨機率／雨量驗證與校正｜06:00–18:00逐時預報｜資料可能延遲或缺漏，請以官方警特報、即時觀測及球場公告為準。</footer>
 </main>
 <script>
 
@@ -983,8 +984,10 @@ $("sources").innerHTML=sources.map(([g,a])=>`<details><summary>${g}（${a.length
 const now=new Date(),fmt=d=>{let x=new Date(d.getTime()-d.getTimezoneOffset()*60000);return x.toISOString().slice(0,10)};
 $("courseDate").value=fmt(now);
 $("courseDate").min=fmt(now);
-let maxDate=new Date();maxDate.setDate(maxDate.getDate()+16);$("courseDate").max=fmt(maxDate);
+let maxDate=new Date();maxDate.setDate(maxDate.getDate()+15);$("courseDate").max=fmt(maxDate);
 let databaseAutoBusy=false;
+let selectedCourseForReload=null;
+let selectedCourseButton=null;
 
 async function geocodeGolfCourse(c,button){
  const taiwan=(lat,lon)=>lat>=21.5&&lat<=25.5&&lon>=119&&lon<=122.5;
@@ -1034,7 +1037,9 @@ async function autoLoadDatabaseCourse(c,button){
  const date=$("courseDate").value;
  if(!date){$("courseAutoStatus").textContent="請先選擇日期、縣市，再按球場按鈕。";return;}
  if(databaseAutoBusy)return;
+ selectedCourseForReload=c;selectedCourseButton=button;
  databaseAutoBusy=true;
+ $("courseDate").disabled=true;
  $("courseList").querySelectorAll("button[data-course]").forEach(x=>{x.disabled=true;x.classList.toggle("course-selected",x===button);});
  try{
    const lat=Number(c.lat),lon=Number(c.lon);
@@ -1042,12 +1047,14 @@ async function autoLoadDatabaseCourse(c,button){
    $("courseAutoStatus").textContent=`${c.name}｜固定座標 ${lat.toFixed(5)}, ${lon.toFixed(5)}｜正在載入 ${date} 氣象…`;
    $("status").textContent=`${c.name}｜${lat.toFixed(5)}, ${lon.toFixed(5)}｜正在取得五組氣象模型…`;
    await loadForecast({name:c.name,address:c.address,lat,lon,source:"使用者提供的57球場固定座標清單",timezone:"Asia/Taipei"},date);
-   $("courseAutoStatus").textContent=`${c.name}｜${date}｜固定座標 ${lat.toFixed(5)}, ${lon.toFixed(5)}｜氣象分析完成`;
+   $("courseAutoStatus").textContent=`${c.name}｜${date}｜固定座標 ${lat.toFixed(5)}, ${lon.toFixed(5)}｜${active?.forecastSource||"氣象分析完成"}`;
  }catch(e){
    $("courseAutoStatus").textContent=`${c.name}：${e.message}`;
-   $("status").textContent="本次未載入天氣，請確認座標資料或網路連線。";
+   $("status").textContent="V31 載入失敗："+e.message;
+   const diag=$("apiDiagnosticsText");if(diag)diag.textContent=e.message;
  }finally{
    databaseAutoBusy=false;
+   $("courseDate").disabled=false;
    $("courseList").querySelectorAll("button[data-course]").forEach(x=>x.disabled=false);
  }
 }
@@ -1058,12 +1065,17 @@ $("courseList").addEventListener("click",event=>{
  if(c)autoLoadDatabaseCourse(c,button);
 });
 document.getElementById("quickCourseButtons").addEventListener("click",event=>{const btn=event.target.closest("button[data-quick-course]");if(!btn||databaseAutoBusy)return;const name=btn.dataset.quickCourse;const idx=taiwanCourses.findIndex(c=>c.name===name);if(idx<0)return;document.querySelectorAll("[data-quick-course]").forEach(x=>x.classList.toggle("quick-selected",x===btn));autoLoadDatabaseCourse(taiwanCourses[idx],btn);});
+// 選好球場後更改日期，立即以同一球場座標重新載入，不沿用舊日期資料。
+$("courseDate").addEventListener("change",()=>{
+ if(!selectedCourseForReload||databaseAutoBusy)return;
+ autoLoadDatabaseCourse(selectedCourseForReload,selectedCourseButton);
+});
 const modelDefs=[
  ["ECMWF IFS","ecmwf_ifs025"],
- ["NOAA GFS","gfs_seamless"],
+ ["NOAA GFS","ncep_gfs_seamless"],
  ["DWD ICON","icon_seamless"],
  ["JMA GSM","jma_seamless"],
- ["Canada GEM","gem_seamless"]
+ ["Canada GEM","cmc_gem_seamless"]
 ];
 // 確定性模式逐時欄位：雨量與溫度／風場分開取值；降雨機率由系集API獨立計算。
 const hourlyVars="temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,weather_code,wind_speed_10m,wind_gusts_10m,wind_direction_10m,cloud_cover,uv_index";
@@ -1120,8 +1132,45 @@ function chart(id,series,maxVal,colors,labels=[],unit=""){
  });
 }
 async function getModel(lat,lon,model){
- const url=`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&hourly=${hourlyVars}&models=${encodeURIComponent(model)}&timezone=Asia%2FTaipei&forecast_days=16&wind_speed_unit=kmh`;
- const res=await fetch(url);if(!res.ok)throw Error(`${model} HTTP ${res.status}`);return await res.json();
+ const attempts=[
+  hourlyVars,
+  hourlyVars.replace(",uv_index",""),
+  "temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,weather_code,wind_speed_10m,wind_gusts_10m,wind_direction_10m,cloud_cover",
+  "temperature_2m,precipitation,weather_code,wind_speed_10m,wind_gusts_10m,wind_direction_10m"
+ ];
+ const failures=[];
+ for(let i=0;i<attempts.length;i++){
+  const params=new URLSearchParams({
+   latitude:String(lat),longitude:String(lon),hourly:attempts[i],
+   timezone:"Asia/Taipei",forecast_days:"16",wind_speed_unit:"kmh"
+  });
+  if(model)params.set("models",model);
+  const url="https://api.open-meteo.com/v1/forecast?"+params.toString();
+  const controller=new AbortController();
+  const timer=setTimeout(()=>controller.abort(),15000);
+  try{
+   const res=await fetch(url,{signal:controller.signal,cache:"no-store"});
+   const body=await res.text();
+   let data;
+   try{data=JSON.parse(body);}catch(_){throw Error("HTTP "+res.status+"：回應不是有效 JSON；"+body.slice(0,240));}
+   if(!res.ok){
+    const reason=data.reason||data.error||body.slice(0,240)||"未知 API 錯誤";
+    const err=Error("HTTP "+res.status+"："+reason);
+    err.status=res.status;
+    throw err;
+   }
+   if(!data.hourly||!Array.isArray(data.hourly.time))throw Error("API 回應缺少 hourly.time");
+   data._requestMeta={model:model||"best_match",variables:attempts[i],reduced:i>0};
+   return data;
+  }catch(e){
+   const message=e.name==="AbortError"?"請求逾時（15秒）":e.message;
+   failures.push("第"+(i+1)+"次欄位組合："+message);
+   // Retry with fewer variables only for a parameter/variable validation error.
+   if(e.status&&e.status!==400&&e.status!==422)break;
+   if(!e.status&&e.name==="AbortError")break;
+  }finally{clearTimeout(timer);}
+ }
+ throw Error((model||"Best Match")+"："+failures.join("；"));
 }
 function extract(data,date){
  const h=data.hourly||{},times=h.time||[],out=[];
@@ -1199,9 +1248,43 @@ async function loadForecast(p,date){
  $("status").textContent="正在以球場座標取得五組氣象模型資料…";
  $("modelCards").innerHTML="";
  const results=await Promise.allSettled(modelDefs.map(m=>getModel(p.lat,p.lon,m[1])));
- results.forEach((r,i)=>{if(r.status==="fulfilled"){const rows=extract(r.value,date);if(rows.length)active.modelRows[modelDefs[i][0]]=rows;}});
+ const modelErrors=[];
+ results.forEach((r,i)=>{
+  const label=modelDefs[i][0];
+  if(r.status==="fulfilled"){
+   const rows=extract(r.value,date);
+   if(rows.length)active.modelRows[label]=rows;
+   else modelErrors.push(label+"：API成功，但所選日期沒有06:00–18:00資料");
+  }else modelErrors.push(label+"："+(r.reason?.message||String(r.reason)));
+ });
  let names=Object.keys(active.modelRows);
- if(!names.length)throw Error("五組模型均未取得資料。請檢查網路、日期是否在預報範圍內，或 Open-Meteo 服務是否暫時不可用。");
+ let forecastSource="五組獨立模式";
+ active.forecastSource=forecastSource;
+ if(!names.length){
+  try{
+   const fallback=await getModel(p.lat,p.lon,null);
+   const rows=extract(fallback,date);
+   if(!rows.length)throw Error("Best Match API成功，但所選日期沒有06:00–18:00逐時資料");
+   active.modelRows["Open-Meteo Best Match"]=rows;
+   names=Object.keys(active.modelRows);
+   forecastSource="Open-Meteo Best Match 備援";
+   active.forecastSource=forecastSource;
+  }catch(e){
+   const detail="五組模式均失敗："+modelErrors.join("｜")+"；Best Match 備援："+e.message;
+   const diag="球場："+p.name+"\n座標："+p.lat+", "+p.lon+"\n日期："+date+"\n\n"+detail;
+   const box=$("apiDiagnosticsText");if(box)box.textContent=diag;
+   throw Error(detail);
+  }
+ }
+ const diagLines=[
+  "球場："+p.name,
+  "座標："+p.lat+", "+p.lon,
+  "日期："+date,
+  "主要資料來源："+forecastSource,
+  "成功模型："+names.join("、"),
+  "失敗模型："+(modelErrors.length?modelErrors.join("\n"):"無")
+ ];
+ const diagBox=$("apiDiagnosticsText");if(diagBox)diagBox.textContent=diagLines.join("\n");
  let base=consensusRows(active.modelRows);
  if(!base.length)throw Error("所選日期沒有06:00–18:00逐時資料。");
  let rainProbInfo;try{rainProbInfo=await getRainProbability(p.lat,p.lon,date);base=base.map(x=>({...x,rain:rainProbInfo.rows[x.time]?.prob??null,rainMembers:rainProbInfo.rows[x.time]?.members??null}));}catch(e){rainProbInfo={source:'不可用',detail:'降雨機率服務未回傳資料：'+e.message};base=base.map(x=>({...x,rain:null}));}
@@ -1229,8 +1312,8 @@ async function loadForecast(p,date){
  const uncertainty="以系集成員估算；尚未完成台灣球場歷史校準";
  $("v26Interpretation").textContent=`模型分歧判讀：${uncertainty}。最高降雨機率改以系集成員比例估算；五個確定性模式僅比較雨量大小；最高氣溫分歧 ${tempSpread===null?"無法計算":tempSpread.toFixed(1)+" °C"}；最高陣風分歧 ${gustSpread===null?"無法計算":gustSpread.toFixed(1)+" km/h"}。模型一致不代表一定準確，仍須參考雷達、官方警特報及球場公告。`;
  $("tableNote").textContent=`${date}｜06:00–18:00逐時資料｜雨量採五模型逐時中位數；降雨機率另採系集成員統計。成功取得 ${names.length}/5 組模型。`;
- $("status").textContent=`V30 降雨預報完成：${names.length}/5 組模型｜${p.name}｜${date}`;
- $("courseAutoStatus").textContent=`${p.name}｜${date}｜座標 ${p.lat.toFixed(5)}, ${p.lon.toFixed(5)}｜氣象分析完成`;
+ $("status").textContent=`V31 預報完成：${forecastSource}｜${names.length}/5 組獨立模式｜${p.name}｜${date}`;
+ $("courseAutoStatus").textContent=`${p.name}｜${date}｜座標 ${p.lat.toFixed(5)}, ${p.lon.toFixed(5)}｜${forecastSource}${modelErrors.length?"；部分模型失敗，詳見 API 診斷":""}`;
  loadRadar(p.lat,p.lon);
  loadV28ProviderCache(p.name,date);
 }
