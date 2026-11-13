@@ -26,7 +26,7 @@ def collect_dataset(client, api_key: str, dataset_code: str, course: dict) -> di
     started = datetime.now(timezone.utc).isoformat()
     received = stations_saved = observations_saved = 0
     station_payloads = []
-    observation_payloads = []
+    observation_pairs = []
     station_map_payloads = []
     try:
         payload = fetch_json(f"{CWA_BASE}/{dataset_code}", api_key)
@@ -62,7 +62,7 @@ def collect_dataset(client, api_key: str, dataset_code: str, course: dict) -> di
             })
             values = weather_values(station, dataset_code)
             quality_status, quality_flags = quality_check(values)
-            observation_payloads.append({
+            observation_pairs.append((code, {
                 "provider": "CWA",
                 "dataset_code": dataset_code,
                 "observed_at": observed_at.isoformat(),
@@ -71,7 +71,7 @@ def collect_dataset(client, api_key: str, dataset_code: str, course: dict) -> di
                 "quality_status": quality_status,
                 "quality_flags": quality_flags,
                 "raw_data": station,
-            })
+            }))
             station_map_payloads.append({
                 "station_code": code,
                 "distance_km": round(distance, 3),
@@ -110,19 +110,12 @@ def collect_dataset(client, api_key: str, dataset_code: str, course: dict) -> di
                     map_rows, on_conflict="course_id,station_id"
                 ).execute()
 
-            for row in observation_payloads:
-                row["station_id"] = id_by_code.get(
-                    next((s["station_code"] for s in station_payloads
-                          if s["station_name"] == ""), "")
-                )
-            # Match each observation to its station by source order/code.
-            observations_by_code = {}
-            for station, obs in zip(rows, observation_payloads):
-                code = station_id_code(station)
-                if code and code in id_by_code and obs["observed_at"]:
-                    obs["station_id"] = id_by_code[code]
-                    observations_by_code.setdefault(code, []).append(obs)
-            flattened = [obs for group in observations_by_code.values() for obs in group]
+            flattened = []
+            for code, obs in observation_pairs:
+                station_id = id_by_code.get(code)
+                if station_id:
+                    obs["station_id"] = station_id
+                    flattened.append(obs)
             for offset in range(0, len(flattened), 300):
                 client.table("observation_hourly").upsert(
                     flattened[offset:offset + 300],
