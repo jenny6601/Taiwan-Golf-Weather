@@ -986,6 +986,8 @@ $("courseDate").value=fmt(now);
 $("courseDate").min=fmt(now);
 let maxDate=new Date();maxDate.setDate(maxDate.getDate()+15);$("courseDate").max=fmt(maxDate);
 let databaseAutoBusy=false;
+let selectedCourseForReload=null;
+let selectedCourseButton=null;
 
 async function geocodeGolfCourse(c,button){
  const taiwan=(lat,lon)=>lat>=21.5&&lat<=25.5&&lon>=119&&lon<=122.5;
@@ -1035,7 +1037,9 @@ async function autoLoadDatabaseCourse(c,button){
  const date=$("courseDate").value;
  if(!date){$("courseAutoStatus").textContent="請先選擇日期、縣市，再按球場按鈕。";return;}
  if(databaseAutoBusy)return;
+ selectedCourseForReload=c;selectedCourseButton=button;
  databaseAutoBusy=true;
+ $("courseDate").disabled=true;
  $("courseList").querySelectorAll("button[data-course]").forEach(x=>{x.disabled=true;x.classList.toggle("course-selected",x===button);});
  try{
    const lat=Number(c.lat),lon=Number(c.lon);
@@ -1050,6 +1054,7 @@ async function autoLoadDatabaseCourse(c,button){
    const diag=$("apiDiagnosticsText");if(diag)diag.textContent=e.message;
  }finally{
    databaseAutoBusy=false;
+   $("courseDate").disabled=false;
    $("courseList").querySelectorAll("button[data-course]").forEach(x=>x.disabled=false);
  }
 }
@@ -1060,6 +1065,11 @@ $("courseList").addEventListener("click",event=>{
  if(c)autoLoadDatabaseCourse(c,button);
 });
 document.getElementById("quickCourseButtons").addEventListener("click",event=>{const btn=event.target.closest("button[data-quick-course]");if(!btn||databaseAutoBusy)return;const name=btn.dataset.quickCourse;const idx=taiwanCourses.findIndex(c=>c.name===name);if(idx<0)return;document.querySelectorAll("[data-quick-course]").forEach(x=>x.classList.toggle("quick-selected",x===btn));autoLoadDatabaseCourse(taiwanCourses[idx],btn);});
+// 選好球場後更改日期，立即以同一球場座標重新載入，不沿用舊日期資料。
+$("courseDate").addEventListener("change",()=>{
+ if(!selectedCourseForReload||databaseAutoBusy)return;
+ autoLoadDatabaseCourse(selectedCourseForReload,selectedCourseButton);
+});
 const modelDefs=[
  ["ECMWF IFS","ecmwf_ifs025"],
  ["NOAA GFS","ncep_gfs_seamless"],
