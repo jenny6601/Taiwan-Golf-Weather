@@ -196,7 +196,7 @@ def weather_values(station: dict[str, Any], dataset_code: str) -> dict[str, floa
         "relative_humidity_pct": first_number(weather.get("RelativeHumidity"), weather.get("relativeHumidity")),
         "precipitation_mm": precipitation,
         "wind_speed_ms": first_number(weather.get("WindSpeed"), weather.get("windSpeed")),
-        "wind_gust_ms": first_number(peak.get("PeakGustSpeed"), peak.get("peakGustSpeed"), peak.get("Speed")),
+        "wind_gust_ms": first_number(peak, gust.get("PeakGustSpeed"), gust.get("peakGustSpeed"), gust.get("Speed")),
         "wind_direction_deg": first_number(weather.get("WindDirection"), weather.get("windDirection")),
     }
 
