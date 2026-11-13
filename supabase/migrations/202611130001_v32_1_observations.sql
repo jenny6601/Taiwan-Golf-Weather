@@ -125,9 +125,3 @@ on conflict (id) do update set
   active = true,
   updated_at = now();
 
-comment on table public.observation_hourly is
-  'V32.1 station observations. Rows are separated by provider and dataset_code; missing values remain NULL.';
-comment on column public.observation_hourly.observed_at is
-  'Observation valid time, stored as timestamptz.';
-comment on column public.observation_hourly.precipitation_mm is
-  'Precipitation amount exactly as defined by the source dataset/time window; consult dataset_code before comparing.';
