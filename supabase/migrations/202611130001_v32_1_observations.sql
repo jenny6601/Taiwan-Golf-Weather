@@ -63,6 +63,7 @@ create table if not exists public.observation_hourly (
   temperature_c double precision,
   relative_humidity_pct double precision,
   precipitation_mm double precision,
+  precipitation_period text,
   wind_speed_ms double precision,
   wind_gust_ms double precision,
   wind_direction_deg double precision,
