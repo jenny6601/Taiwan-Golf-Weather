@@ -34,4 +34,4 @@ jobs:
           CWA_API_KEY: ${{ secrets.CWA_API_KEY }}
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
-        run: python scripts/collect_observations.py --source cwa
+        run: python -m scripts.collect_observations --source cwa
