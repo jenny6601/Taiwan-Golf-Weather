@@ -1,0 +1,16 @@
+{
+  "pilot_courses": [
+    {
+      "id": "JIAOXI",
+      "name": "礁溪高爾夫球場",
+      "county": "宜蘭縣",
+      "address": "宜蘭縣礁溪鄉林美村林尾路156號",
+      "latitude": 24.8389,
+      "longitude": 121.7389,
+      "timezone": "Asia/Taipei",
+      "station_search_radius_km": 30,
+      "candidate_station_count": 5,
+      "active": true
+    }
+  ]
+}
