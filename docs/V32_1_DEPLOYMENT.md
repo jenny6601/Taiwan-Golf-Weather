@@ -40,11 +40,12 @@ The migration enables RLS and intentionally creates no anon/public policies. The
 
 1. Open GitHub Actions.
 2. Select "V32.1 CWA Observation Collector".
-3. Select Run workflow on branch `feature/v32.1-jiaoxi-observations`.
-4. Inspect the run summary and Supabase `ingestion_logs`.
-5. Confirm station and observation rows exist.
+3. The workflow must first be merged into the repository's default branch before GitHub enables `workflow_dispatch` for it.
+4. Select Run workflow and choose the V32.1 branch if it is available in the branch selector.
+5. Inspect the run summary and Supabase `ingestion_logs`.
+6. Confirm station and observation rows exist.
 
-The scheduled trigger runs only after this workflow is merged into the repository's default branch. Manual workflow dispatch can be used on the feature branch for testing.
+GitHub scheduled workflows run from the default branch. Do not expect the hourly schedule to start while this workflow exists only on a feature branch.
 
 ## Data interpretation notes
 
