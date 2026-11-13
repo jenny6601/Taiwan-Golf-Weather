@@ -53,7 +53,7 @@ GitHub scheduled workflows run from the default branch. Do not expect the hourly
 - Missing or sentinel values remain NULL.
 - O-A0001-001 and O-A0002-001 are stored as separate dataset rows to avoid rainfall-only records overwriting other variables.
 - Station candidates are ranked by straight-line distance only at ingestion. Terrain, elevation, exposure and station type require review before a station is treated as representative of the golf course.
-- Precipitation accumulation period must be interpreted by dataset and source field; do not combine different accumulation windows without normalization.
+- `O-A0001-001` precipitation is the daily accumulated amount since local 00:00; `O-A0002-001` prefers the past-1-hour amount and falls back to shorter/longer available windows. The chosen window is stored in `precipitation_period`; never compare or aggregate different periods as if they were equivalent.
 - The current collector is a pilot implementation. Verify actual CWA response fields in ingestion results before using the data for forecast scoring.
 
 ## Troubleshooting
