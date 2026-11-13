@@ -60,9 +60,20 @@ def nested_get(obj: dict[str, Any], *path: str) -> Any:
     return current
 
 
+def scalar_value(value: Any) -> Any:
+    if isinstance(value, dict):
+        for key in ("value", "Value", "AirTemperature", "RelativeHumidity",
+                    "WindSpeed", "WindDirection", "Precipitation",
+                    "PeakGustSpeed", "Speed"):
+            if key in value:
+                return scalar_value(value[key])
+        return None
+    return value
+
+
 def first_number(*values: Any) -> float | None:
     for value in values:
-        number = as_float(value)
+        number = as_float(scalar_value(value))
         if number is not None:
             return number
     return None
@@ -85,34 +96,25 @@ def coordinate(station: dict[str, Any]) -> tuple[float | None, float | None]:
     if isinstance(coords, dict):
         coords = [coords]
     lat = lon = None
+    decimal_values = []
     for item in coords:
         name = str(item.get("CoordinateName") or item.get("coordinateName") or "").lower()
         value = as_float(item.get("CoordinateValue") or item.get("coordinateValue"))
         if value is None:
             continue
-        if "wgs" in name and ("lat" in name or "latitude" in name):
+        fmt = str(item.get("CoordinateFormat") or item.get("coordinateFormat") or "").lower()
+        if "latitude" in name or name in ("lat", "latitude"):
             lat = value
-        elif "wgs" in name and ("lon" in name or "longitude" in name):
+        elif "longitude" in name or name in ("lon", "lng", "longitude"):
             lon = value
-        elif "latitude" in name:
-            lat = value
-        elif "longitude" in name:
-            lon = value
-    # Some CWA products expose direct Position fields.
+        elif "decimal" in fmt or "wgs84" in name:
+            decimal_values.append(value)
+    # CWA commonly returns WGS84 decimal coordinates as [longitude, latitude].
+    if (lat is None or lon is None) and len(decimal_values) >= 2:
+        lon = lon if lon is not None else decimal_values[0]
+        lat = lat if lat is not None else decimal_values[1]
     lat = lat if lat is not None else as_float(station.get("lat") or station.get("Latitude"))
     lon = lon if lon is not None else as_float(station.get("lon") or station.get("Longitude"))
-    # Fallback to the common CWA WGS84 CoordinateFormat entries.
-    if lat is None or lon is None:
-        for item in coords:
-            fmt = str(item.get("CoordinateFormat") or "").lower()
-            value = as_float(item.get("CoordinateValue"))
-            if value is None or "decimal" not in fmt:
-                continue
-            cname = str(item.get("CoordinateName") or "").lower()
-            if "latitude" in cname:
-                lat = value
-            elif "longitude" in cname:
-                lon = value
     return lat, lon
 
 
