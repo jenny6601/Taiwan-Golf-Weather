@@ -1043,7 +1043,7 @@ async function autoLoadDatabaseCourse(c,button){
    $("courseAutoStatus").textContent=`${c.name}｜固定座標 ${lat.toFixed(5)}, ${lon.toFixed(5)}｜正在載入 ${date} 氣象…`;
    $("status").textContent=`${c.name}｜${lat.toFixed(5)}, ${lon.toFixed(5)}｜正在取得五組氣象模型…`;
    await loadForecast({name:c.name,address:c.address,lat,lon,source:"使用者提供的57球場固定座標清單",timezone:"Asia/Taipei"},date);
-   $("courseAutoStatus").textContent=`${c.name}｜${date}｜固定座標 ${lat.toFixed(5)}, ${lon.toFixed(5)}｜氣象分析完成`;
+   $("courseAutoStatus").textContent=`${c.name}｜${date}｜固定座標 ${lat.toFixed(5)}, ${lon.toFixed(5)}｜${active?.forecastSource||"氣象分析完成"}`;
  }catch(e){
    $("courseAutoStatus").textContent=`${c.name}：${e.message}`;
    $("status").textContent="V31 載入失敗："+e.message;
@@ -1249,6 +1249,7 @@ async function loadForecast(p,date){
  });
  let names=Object.keys(active.modelRows);
  let forecastSource="五組獨立模式";
+ active.forecastSource=forecastSource;
  if(!names.length){
   try{
    const fallback=await getModel(p.lat,p.lon,null);
@@ -1257,6 +1258,7 @@ async function loadForecast(p,date){
    active.modelRows["Open-Meteo Best Match"]=rows;
    names=Object.keys(active.modelRows);
    forecastSource="Open-Meteo Best Match 備援";
+   active.forecastSource=forecastSource;
   }catch(e){
    const detail="五組模式均失敗："+modelErrors.join("｜")+"；Best Match 備援："+e.message;
    const diag="球場："+p.name+"\n座標："+p.lat+", "+p.lon+"\n日期："+date+"\n\n"+detail;
