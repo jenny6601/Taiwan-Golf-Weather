@@ -1135,24 +1135,18 @@ function chart(id,series,maxVal,colors,labels=[],unit="",chartTheme=""){
    if(chartTheme){
     // 依每小時資料點的實際高度標註；零降雨不顯示，缺值不推定為零。
     let mark="";
-    if(chartTheme==="rainProbability"&&v>0)mark="☂️".repeat(Math.max(1,Math.min(5,Math.ceil(v/20))));
+    if(chartTheme==="rainProbability"&&v>0)mark="☂";
     else if(chartTheme==="rainAmount"&&v>0)mark="💧".repeat(v<1?1:v<5?2:3);
     else if(chartTheme==="temperature")mark=Math.round(v).toString()+"°";
     if(mark){
      ctx.save();
-     ctx.font=chartTheme==="temperature"?"bold 11px system-ui,sans-serif":"15px 'Noto Color Emoji','Apple Color Emoji',sans-serif";
+     ctx.font=chartTheme==="temperature"?"bold 12px system-ui,sans-serif":chartTheme==="rainProbability"?"20px sans-serif":"15px 'Noto Color Emoji','Apple Color Emoji',sans-serif";
      ctx.textAlign="center";ctx.textBaseline="bottom";
-     ctx.fillStyle=chartTheme==="temperature"?colors[si%colors.length]:"#17212b";
-     // 氣溫與體感兩條曲線接近時，分開標籤避免重疊。
-     let markY=y-7;
-     if(chartTheme==="temperature"&&si===1){
-      const other=series[0]?.[i];
-      if(other!==null&&Number.isFinite(other)){
-       const otherY=topPad+plotH-(other/top)*plotH;
-       if(Math.abs(y-otherY)<15)markY=y+17;
-      }
-     }
-     const drawY=Math.max(13,Math.min(h-bottom+23,markY));
+     const umbrellaColors=["#87CEEB","#164A9C","#E53935","#8E24AA","#171717"];
+     ctx.fillStyle=chartTheme==="temperature"?colors[si%colors.length]:chartTheme==="rainProbability"?umbrellaColors[Math.max(0,Math.min(4,Math.ceil(v/20)-1))]:"#17212b";
+     // 氣溫標籤與曲線拉開：氣溫置於線上方，體感置於線下方。
+     let markY=chartTheme==="temperature"?(si===0?y-13:y+27):y-7;
+     const drawY=Math.max(13,Math.min(h-bottom+29,markY));
      if(chartTheme==="rainAmount"){
       // 雨滴緊密排列：中心對齊，間距小於圖示寬度，形成連續雨滴群。
       const count=mark.length;
@@ -1161,13 +1155,8 @@ function chart(id,series,maxVal,colors,labels=[],unit="",chartTheme=""){
        ctx.fillText("💧",x+offset,drawY);
       }
      }else if(chartTheme==="rainProbability"){
-      // 三支以上小雨傘採重疊排列，避免圖示過寬並保持中心對齊。
-      const count=Math.max(1,Math.min(5,Math.ceil(v/20)));
-      const spacing=count>=3?9:13;
-      for(let umbrella=0;umbrella<count;umbrella++){
-       const offset=(umbrella-(count-1)/2)*spacing;
-       ctx.fillText("☂️",x+offset,drawY);
-      }
+      // 每個時段只顯示一支小雨傘，以五種顏色代表降雨機率級距。
+      ctx.fillText("☂",x,drawY);
      }else{
       ctx.fillText(mark,x,drawY);
      }
