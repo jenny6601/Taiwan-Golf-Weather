@@ -6,7 +6,7 @@
 <html lang="zh-Hant">
 <head>
 <meta charset="utf-8"/><meta content="width=device-width,initial-scale=1" name="viewport"/>
-<title>台灣高爾夫球場天氣預測 V31.4｜曲線圖天氣圖示版</title>
+<title>台灣高爾夫球場天氣預測 V31.6｜分級降雨圖示與溫度數字版</title>
 <style>
 :root{--bg:#f2f5f7;--card:#fff;--ink:#17212b;--muted:#64748b;--line:#dfe6ec;--green:#126b4c;--blue:#1769aa;--amber:#b7791f;--red:#b42318}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,-apple-system,"Noto Sans TC",sans-serif}
@@ -136,7 +136,7 @@ footer{color:var(--muted);font-size:12px;padding:18px 0}
 </style>
 </head>
 <body>
-<header><div class="wrap"><h1>⛳ 台灣高爾夫球場天氣預測V31.4｜API穩定性與曲線圖圖示版</h1><p>台灣球場資料庫・縣市篩選・手動座標・氣溫／體感溫度逐時分析</p></div></header>
+<header><div class="wrap"><h1>⛳ 台灣高爾夫球場天氣預測V31.6｜分級降雨圖示與溫度數字版</h1><p>台灣球場資料庫・縣市篩選・手動座標・氣溫／體感溫度逐時分析</p></div></header>
 <main class="wrap">
 <section class="panel" id="coursePickerPanel">
 <h2 style="margin:0 0 10px">選擇日期、縣市，再按球場</h2>
@@ -1133,9 +1133,28 @@ function chart(id,series,maxVal,colors,labels=[],unit="",chartTheme=""){
    const x=xAt(i),y=topPad+plotH-(v/top)*plotH;
    ctx.fillStyle=colors[si%colors.length];ctx.beginPath();ctx.arc(x,y,2.5,0,Math.PI*2);ctx.fill();
    if(chartTheme){
-    const glyph=chartTheme==="rainProbability"?"☔":chartTheme==="rainAmount"?"💧":(si===0?"🌡️":"🥵");
-    ctx.save();ctx.font="15px 'Noto Color Emoji','Apple Color Emoji',sans-serif";
-    ctx.textAlign="center";ctx.textBaseline="bottom";ctx.fillText(glyph,x,y-5);ctx.restore();
+    // 依每小時資料點的實際高度標註；零降雨不顯示，缺值不推定為零。
+    let mark="";
+    if(chartTheme==="rainProbability"&&v>0)mark=v<30?"🌦️":v<60?"🌧️":"⛈️";
+    else if(chartTheme==="rainAmount"&&v>0)mark=v<1?"💧":v<5?"🌧️":"⛈️";
+    else if(chartTheme==="temperature")mark=Number(v.toFixed(1)).toString()+"°";
+    if(mark){
+     ctx.save();
+     ctx.font=chartTheme==="temperature"?"bold 11px system-ui,sans-serif":"15px 'Noto Color Emoji','Apple Color Emoji',sans-serif";
+     ctx.textAlign="center";ctx.textBaseline="bottom";
+     ctx.fillStyle=chartTheme==="temperature"?colors[si%colors.length]:"#17212b";
+     // 氣溫與體感兩條曲線接近時，分開標籤避免重疊。
+     let markY=y-7;
+     if(chartTheme==="temperature"&&si===1){
+      const other=series[0]?.[i];
+      if(other!==null&&Number.isFinite(other)){
+       const otherY=topPad+plotH-(other/top)*plotH;
+       if(Math.abs(y-otherY)<15)markY=y+17;
+      }
+     }
+     ctx.fillText(mark,x,Math.max(13,Math.min(h-bottom+23,markY)));
+     ctx.restore();
+    }
    }
   });
  });
