@@ -1131,44 +1131,42 @@ function chart(id,series,maxVal,colors,labels=[],unit=""){
   arr.forEach((v,i)=>{if(v===null||!Number.isFinite(v))return;const x=xAt(i),y=topPad+plotH-(v/top)*plotH;ctx.fillStyle=colors[si%colors.length];ctx.beginPath();ctx.arc(x,y,2.5,0,Math.PI*2);ctx.fill();});
  });
 }
+// V31.3：共用請求逾時與短次數重試，避免網路瞬斷直接令模型失敗。
+async function fetchWithRetry(url,options={},label="氣象服務",timeoutMs=18000){
+ const maxAttempts=2,lastErrors=[];
+ for(let attempt=1;attempt<=maxAttempts;attempt++){
+  const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),timeoutMs);
+  try{
+   const response=await fetch(url,{...options,signal:controller.signal,cache:"no-store"});
+   if(response.ok)return response;
+   const body=await response.text(),err=Error("HTTP "+response.status+"："+body.slice(0,220));err.status=response.status;
+   if(response.status!==429&&response.status<500)throw err;
+   lastErrors.push(err.message);
+  }catch(e){
+   if(e.status&&e.status!==429&&e.status<500)throw e;
+   lastErrors.push(e.name==="AbortError"?"逾時（"+timeoutMs/1000+"秒）":e.message||String(e));
+  }finally{clearTimeout(timer);}
+  if(attempt<maxAttempts)await new Promise(resolve=>setTimeout(resolve,700*attempt));
+ }
+ throw Error(label+"重試"+maxAttempts+"次仍失敗："+lastErrors.join("／"));
+}
 async function getModel(lat,lon,model){
- const attempts=[
-  hourlyVars,
-  hourlyVars.replace(",uv_index",""),
-  "temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,weather_code,wind_speed_10m,wind_gusts_10m,wind_direction_10m,cloud_cover",
-  "temperature_2m,precipitation,weather_code,wind_speed_10m,wind_gusts_10m,wind_direction_10m"
- ];
+ const attempts=[hourlyVars,hourlyVars.replace(",uv_index",""),"temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,weather_code,wind_speed_10m,wind_gusts_10m,wind_direction_10m,cloud_cover","temperature_2m,precipitation,weather_code,wind_speed_10m,wind_gusts_10m,wind_direction_10m"];
  const failures=[];
  for(let i=0;i<attempts.length;i++){
-  const params=new URLSearchParams({
-   latitude:String(lat),longitude:String(lon),hourly:attempts[i],
-   timezone:"Asia/Taipei",forecast_days:"16",wind_speed_unit:"kmh"
-  });
+  const params=new URLSearchParams({latitude:String(lat),longitude:String(lon),hourly:attempts[i],timezone:"Asia/Taipei",forecast_days:"16",wind_speed_unit:"kmh"});
   if(model)params.set("models",model);
   const url="https://api.open-meteo.com/v1/forecast?"+params.toString();
-  const controller=new AbortController();
-  const timer=setTimeout(()=>controller.abort(),15000);
   try{
-   const res=await fetch(url,{signal:controller.signal,cache:"no-store"});
-   const body=await res.text();
-   let data;
-   try{data=JSON.parse(body);}catch(_){throw Error("HTTP "+res.status+"：回應不是有效 JSON；"+body.slice(0,240));}
-   if(!res.ok){
-    const reason=data.reason||data.error||body.slice(0,240)||"未知 API 錯誤";
-    const err=Error("HTTP "+res.status+"："+reason);
-    err.status=res.status;
-    throw err;
-   }
+   const res=await fetchWithRetry(url,{},model||"Best Match"),body=await res.text();let data;
+   try{data=JSON.parse(body);}catch(_){throw Error("回應不是有效 JSON；"+body.slice(0,240));}
    if(!data.hourly||!Array.isArray(data.hourly.time))throw Error("API 回應缺少 hourly.time");
-   data._requestMeta={model:model||"best_match",variables:attempts[i],reduced:i>0};
-   return data;
+   data._requestMeta={model:model||"best_match",variables:attempts[i],reduced:i>0};return data;
   }catch(e){
-   const message=e.name==="AbortError"?"請求逾時（15秒）":e.message;
-   failures.push("第"+(i+1)+"次欄位組合："+message);
-   // Retry with fewer variables only for a parameter/variable validation error.
+   failures.push("第"+(i+1)+"組欄位："+e.message);
    if(e.status&&e.status!==400&&e.status!==422)break;
-   if(!e.status&&e.name==="AbortError")break;
-  }finally{clearTimeout(timer);}
+   if(!e.status&&!/HTTP 400|HTTP 422/.test(e.message))break;
+  }
  }
  throw Error((model||"Best Match")+"："+failures.join("；"));
 }
@@ -1183,25 +1181,22 @@ function extract(data,date){
  return out;
 }
 async function getRainProbability(lat,lon,date){
- // Calculate a probability within each ensemble system first, then give each system equal weight.
- // This avoids allowing the ensemble with more members to dominate the combined probability.
+ // 降雨機率獨立載入；系集請求逾時不應拖住核心預報。
  const models=[['ECMWF IFS ENS','ecmwf_ifs025'],['NOAA GFS ENS','gfs_seamless'],['DWD ICON EPS','icon_seamless']];
  const results=await Promise.allSettled(models.map(async ([label,model])=>{
   const url=`https://ensemble-api.open-meteo.com/v1/ensemble?latitude=${lat}&longitude=${lon}&hourly=precipitation&models=${encodeURIComponent(model)}&timezone=Asia%2FTaipei&forecast_days=16`;
-  const r=await fetch(url);if(!r.ok)throw Error(label+' HTTP '+r.status);const d=await r.json(),h=d.hourly||{},times=h.time||[];
-  const keys=Object.keys(h).filter(k=>/^precipitation_member\d+$/i.test(k));
+  const r=await fetchWithRetry(url,{},label,14000),d=await r.json(),h=d.hourly||{},times=h.time||[];
+  const keys=Object.keys(h).filter(k=>/^precipitation_member\\d+$/i.test(k));
   if(keys.length<10)throw Error(label+' 系集成員欄位不足');
   const out={};times.forEach((t,i)=>{if(!t.startsWith(date+'T'))return;const hour=Number(t.slice(11,13));if(hour<6||hour>18)return;const vals=keys.map(k=>h[k]?.[i]).filter(v=>v!==null&&v!==undefined&&Number.isFinite(Number(v))).map(Number);if(vals.length)out[t.slice(11,16)]={prob:vals.filter(v=>v>0.1).length/vals.length*100,members:vals.length};});
   return {label,keys:keys.length,out};
  }));
- const systems=results.filter(x=>x.status==='fulfilled').map(x=>x.value);
- const combined={};
- for(const sys of systems){for(const [time,v] of Object.entries(sys.out)){(combined[time]??=[]).push(v.prob);}}
- const rows={};for(const [time,probs] of Object.entries(combined)){if(probs.length)rows[time]={prob:Math.round(probs.reduce((a,b)=>a+b,0)/probs.length),members:probs.length,source:'系集系統等權整合'};}
- if(Object.keys(rows).length)return {rows,source:'系集系統等權整合',detail:`成功 ${systems.length}/3 組系集：${systems.map(x=>x.label+' '+x.keys+'成員').join('、')}；先計算各系集內 >0.1 mm 成員比例，再對系集等權平均`};
- // Official Best Match precipitation_probability is ensemble-derived (about 30 simulations).
+ const systems=results.filter(x=>x.status==='fulfilled').map(x=>x.value),combined={};
+ for(const sys of systems)for(const [time,v] of Object.entries(sys.out))(combined[time]??=[]).push(v.prob);
+ const rows={};for(const [time,probs] of Object.entries(combined))if(probs.length)rows[time]={prob:Math.round(probs.reduce((a,b)=>a+b,0)/probs.length),members:probs.length,source:'系集系統等權整合'};
+ if(Object.keys(rows).length)return {rows,source:'系集系統等權整合',detail:`成功 ${systems.length}/3 組系集：${systems.map(x=>x.label+' '+x.keys+'成員').join('、')}；各系集內先計算 >0.1 mm 成員比例，再對系集等權平均`};
  const u=`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&hourly=precipitation_probability&timezone=Asia%2FTaipei&forecast_days=16`;
- const r=await fetch(u);if(!r.ok)throw Error('系集及Best Match機率服務均不可用');const d=await r.json(),h=d.hourly||{},fallback={};
+ const r=await fetchWithRetry(u,{},"Best Match 降雨機率",14000),d=await r.json(),h=d.hourly||{},fallback={};
  (h.time||[]).forEach((t,i)=>{if(!t.startsWith(date+'T'))return;const hour=Number(t.slice(11,13));if(hour<6||hour>18)return;const v=h.precipitation_probability?.[i];if(v!==null&&v!==undefined)fallback[t.slice(11,16)]={prob:Number(v),members:null,source:'Open-Meteo Best Match 系集機率'};});
  if(!Object.keys(fallback).length)throw Error('Best Match 未回傳所選日期的逐時降雨機率');
  return {rows:fallback,source:'Best Match 系集機率',detail:'系集成員API未取得有效資料，改用Open-Meteo Best Match的系集降雨機率（約30組模擬）'};
@@ -1246,7 +1241,10 @@ async function loadForecast(p,date){
  $("locname").textContent=p.name;
  $("coords").textContent=`${p.address||""}｜${p.lat.toFixed(5)}, ${p.lon.toFixed(5)}｜固定座標`;
  $("status").textContent="正在以球場座標取得五組氣象模型資料…";
- $("modelCards").innerHTML="";
+ // 清除舊查詢結果，避免失敗時舊資料被誤認為新資料。
+ ["hourRows","metrics","rainMetrics","modelCards","v26Stats"].forEach(id=>{const el=$(id);if(el)el.innerHTML="";});
+ ["rainChart","rainAmountChart","tempChart","windChart"].forEach(id=>{const el=$(id);if(el){const ctx=el.getContext("2d");if(ctx)ctx.clearRect(0,0,el.width,el.height);}});
+ $("apiDiagnosticsText").textContent="正在查詢五組模型；單一請求逾時後會自動重試一次。";
  const results=await Promise.allSettled(modelDefs.map(m=>getModel(p.lat,p.lon,m[1])));
  const modelErrors=[];
  results.forEach((r,i)=>{
