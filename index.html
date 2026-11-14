@@ -1098,7 +1098,7 @@ function rainAmountHTML(v){
 }
 function golfabilityScore(rows){if(rows.length!==4||rows.some(x=>!x.available))return null;if(rows.some(x=>x.code>=95))return 0;return Math.round(rows.reduce((z,x)=>z+score(x.rain,x.wind,x.gust,x.feel),0)/4);}
 function golfScoreLabel(v){return v>=85?"非常適合":v>=70?"適合":v>=55?"尚可，留意天氣":"不建議";}
-function chart(id,series,maxVal,colors,labels=[],unit=""){
+function chart(id,series,maxVal,colors,labels=[],unit="",weatherCodes=null){
  const el=$(id);if(!el)return;
  const canvas=el.tagName==="CANVAS"?el:el.querySelector("canvas");
  if(!canvas)return;
@@ -1106,7 +1106,7 @@ function chart(id,series,maxVal,colors,labels=[],unit=""){
  const w=canvas.width=canvas.clientWidth||600,h=220;
  ctx.clearRect(0,0,w,h);
  const vals=series.flat().filter(v=>v!==null&&Number.isFinite(v));if(!vals.length)return;
- const left=48,right=12,topPad=16,bottom=42,plotH=h-topPad-bottom,plotW=w-left-right;
+ const left=48,right=12,topPad=36,bottom=42,plotH=h-topPad-bottom,plotW=w-left-right;
  const top=maxVal||Math.max(...vals,1);
  ctx.font="12px sans-serif";ctx.textAlign="right";ctx.textBaseline="middle";
  for(let t=0;t<=4;t++){
@@ -1118,6 +1118,11 @@ function chart(id,series,maxVal,colors,labels=[],unit=""){
  const n=Math.max(1,series[0]?.length||0),xAt=i=>left+(i*plotW/Math.max(1,n-1));
  ctx.textAlign="center";ctx.textBaseline="top";ctx.fillStyle="#475569";
  const step=Math.max(1,Math.ceil(n/5));
+ if(Array.isArray(weatherCodes)){
+  ctx.save();ctx.textAlign="center";ctx.textBaseline="middle";ctx.font="16px system-ui, sans-serif";
+  for(let i=0;i<n;i++){const code=weatherCodes[i];ctx.fillText(code===null||code===undefined?"—":wxIcon(Number(code)),xAt(i),17);}
+  ctx.restore();
+ }
  for(let i=0;i<n;i+=step)ctx.fillText(labels[i]||String(i+1),xAt(i),topPad+plotH+8);
  if(n>1 && (n-1)%step!==0)ctx.fillText(labels[n-1]||String(n),xAt(n-1),topPad+plotH+8);
  series.forEach((arr,si)=>{
@@ -1296,9 +1301,9 @@ async function loadForecast(p,date){
  $("hourRows").innerHTML=base.map(x=>`<tr><td><b>${x.time}</b></td><td><span class="wxcell"><span class="wxemoji">${wxIcon(x.code)}</span>${wx(x.code)}</span></td><td>${rainProbHTML(x.rain)}</td><td>${amountRangeHTML(x)}</td><td>${fmt(x.temp)}</td><td><span class="feel-temp">${fmt(x.feel)}</span></td><td>${fmt(x.wind)}</td><td>${fmt(x.gust)}</td><td>${x.dir===null||x.dir===undefined?"—":`${dir(x.dir)} ${Math.round(x.dir)}°`}</td><td>${x.rh??"—"}%</td><td>${x.cloud??"—"}%</td><td>${fmt(x.uv)}</td><td class="${cls(score(x.rain,x.wind,x.gust,x.feel))}">${score(x.rain,x.wind,x.gust,x.feel)}/100</td></tr>`).join("");
  const chartTimes=base.map(x=>x.time);
  chart("windChart",[base.map(x=>x.wind),base.map(x=>x.gust)],Math.max(30,mx("gust")||30),["#1769aa","#d97706"],chartTimes," km/h");
- chart("rainChart",[base.map(x=>x.rain)],100,["#15966a"],chartTimes,"%");
- chart("rainAmountChart",[base.map(x=>x.mm)],Math.max(1,Math.ceil((Math.max(...base.map(x=>x.mm||0),0))*1.2)),["#2563eb"],chartTimes," mm");
- chart("tempChart",[base.map(x=>x.temp),base.map(x=>x.feel)],Math.max(40,mx("temp")||40,mx("feel")||40),["#1769aa","#dc2626"],chartTimes,"°C");
+ chart("rainChart",[base.map(x=>x.rain)],100,["#15966a"],chartTimes,"%",base.map(x=>x.code));
+ chart("rainAmountChart",[base.map(x=>x.mm)],Math.max(1,Math.ceil((Math.max(...base.map(x=>x.mm||0),0))*1.2)),["#2563eb"],chartTimes," mm",base.map(x=>x.code));
+ chart("tempChart",[base.map(x=>x.temp),base.map(x=>x.feel)],Math.max(40,mx("temp")||40,mx("feel")||40),["#1769aa","#dc2626"],chartTimes,"°C",base.map(x=>x.code));
  const windows=[];for(let i=0;i<=base.length-4;i++){const group=base.slice(i,i+4);if(group.length===4){const v=golfabilityScore(group);if(v!==null)windows.push({time:group[0].time,v,rain:group.reduce((z,x)=>z+(x.mm||0),0),gust:Math.max(...group.map(x=>x.gust||0))});}}
  windows.sort((a,b)=>b.v-a.v);
  $("teeAdvice").innerHTML=windows.length?windows.slice(0,3).map((x,i)=>`<p><b>推薦時段 ${i+1}：${x.time} 起連續4小時</b>｜${x.v}/100｜${golfScoreLabel(x.v)}｜雨量 ${x.rain.toFixed(1)} mm｜最大陣風 ${x.gust.toFixed(1)} km/h</p>`).join(""):"目前沒有完整四小時資料可供評估。";
