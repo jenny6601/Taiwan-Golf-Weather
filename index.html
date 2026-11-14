@@ -1160,6 +1160,14 @@ function chart(id,series,maxVal,colors,labels=[],unit="",chartTheme=""){
        const offset=(drop-(count-1)/2)*9;
        ctx.fillText("💧",x+offset,drawY);
       }
+     }else if(chartTheme==="rainProbability"){
+      // 三支以上小雨傘採重疊排列，避免圖示過寬並保持中心對齊。
+      const count=Math.max(1,Math.min(5,Math.ceil(v/20)));
+      const spacing=count>=3?9:13;
+      for(let umbrella=0;umbrella<count;umbrella++){
+       const offset=(umbrella-(count-1)/2)*spacing;
+       ctx.fillText("☂️",x+offset,drawY);
+      }
      }else{
       ctx.fillText(mark,x,drawY);
      }
