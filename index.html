@@ -1152,7 +1152,17 @@ function chart(id,series,maxVal,colors,labels=[],unit="",chartTheme=""){
        if(Math.abs(y-otherY)<15)markY=y+17;
       }
      }
-     ctx.fillText(mark,x,Math.max(13,Math.min(h-bottom+23,markY)));
+     const drawY=Math.max(13,Math.min(h-bottom+23,markY));
+     if(chartTheme==="rainAmount"){
+      // 雨滴緊密排列：中心對齊，間距小於圖示寬度，形成連續雨滴群。
+      const count=mark.length;
+      for(let drop=0;drop<count;drop++){
+       const offset=(drop-(count-1)/2)*9;
+       ctx.fillText("💧",x+offset,drawY);
+      }
+     }else{
+      ctx.fillText(mark,x,drawY);
+     }
      ctx.restore();
     }
    }
