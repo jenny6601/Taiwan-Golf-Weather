@@ -1136,7 +1136,7 @@ function chart(id,series,maxVal,colors,labels=[],unit="",chartTheme=""){
     // 依每小時資料點的實際高度標註；零降雨不顯示，缺值不推定為零。
     let mark="";
     if(chartTheme==="rainProbability"&&v>0)mark=v<30?"🌦️":v<60?"🌧️":"⛈️";
-    else if(chartTheme==="rainAmount"&&v>0)mark=v<1?"💧":v<5?"🌧️":"⛈️";
+    else if(chartTheme==="rainAmount"&&v>0)mark="💧".repeat(v<1?1:v<5?2:3);
     else if(chartTheme==="temperature")mark=Number(v.toFixed(1)).toString()+"°";
     if(mark){
      ctx.save();
