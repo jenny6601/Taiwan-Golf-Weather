@@ -1135,9 +1135,9 @@ function chart(id,series,maxVal,colors,labels=[],unit="",chartTheme=""){
    if(chartTheme){
     // 依每小時資料點的實際高度標註；零降雨不顯示，缺值不推定為零。
     let mark="";
-    if(chartTheme==="rainProbability"&&v>0)mark=v<30?"🌦️":v<60?"🌧️":"⛈️";
+    if(chartTheme==="rainProbability"&&v>0)mark="☂️".repeat(Math.max(1,Math.min(5,Math.ceil(v/20))));
     else if(chartTheme==="rainAmount"&&v>0)mark="💧".repeat(v<1?1:v<5?2:3);
-    else if(chartTheme==="temperature")mark=Number(v.toFixed(1)).toString()+"°";
+    else if(chartTheme==="temperature")mark=Math.round(v).toString()+"°";
     if(mark){
      ctx.save();
      ctx.font=chartTheme==="temperature"?"bold 11px system-ui,sans-serif":"15px 'Noto Color Emoji','Apple Color Emoji',sans-serif";
@@ -1331,7 +1331,7 @@ async function loadForecast(p,date){
  const rainTotal=valid.reduce((z,x)=>z+(x.mm||0),0),wet=valid.filter(x=>(x.mm||0)>0.1).sort((a,b)=>(b.mm||0)-(a.mm||0))[0],four=valid.map((x,i)=>({start:x.time,total:valid.slice(i,i+4).reduce((z,y)=>z+(y.mm||0),0)})).filter(x=>valid.findIndex(y=>y.time===x.start)+3<valid.length).sort((a,b)=>b.total-a.total)[0];
  $("rainMetrics").innerHTML=[["06–18時最高降雨機率",fmt(mx("rain"),0)+"%"],["06–18時累積雨量",fmt(rainTotal)+" mm"],["雨量最大小時",wet?wet.time+"｜"+fmt(wet.mm)+" mm":"—"],["最大連續4小時雨量",four?four.start+"起｜"+fmt(four.total)+" mm":"—"],["機率資料來源",rainProbInfo.source]].map(([a,b])=>`<div class="metric"><small>${a}</small><strong style="font-size:18px">${b}</strong></div>`).join("");
  $("rainMethodStatus").textContent=rainProbInfo.detail+`。雨量為五模式逐時中位數；每小時同時呈現五模式範圍，累積雨量為06:00–18:00逐時合計。`;
- $("hourRows").innerHTML=base.map(x=>`<tr><td><b>${x.time}</b></td><td><span class="wxcell"><span class="wxemoji">${wxIcon(x.code)}</span>${wx(x.code)}</span></td><td>${rainProbHTML(x.rain)}</td><td>${amountRangeHTML(x)}</td><td>${fmt(x.temp)}</td><td><span class="feel-temp">${fmt(x.feel)}</span></td><td>${fmt(x.wind)}</td><td>${fmt(x.gust)}</td><td>${x.dir===null||x.dir===undefined?"—":`${dir(x.dir)} ${Math.round(x.dir)}°`}</td><td>${x.rh??"—"}%</td><td>${x.cloud??"—"}%</td><td>${fmt(x.uv)}</td><td class="${cls(score(x.rain,x.wind,x.gust,x.feel))}">${score(x.rain,x.wind,x.gust,x.feel)}/100</td></tr>`).join("");
+ $("hourRows").innerHTML=base.map(x=>`<tr><td><b>${x.time}</b></td><td><span class="wxcell"><span class="wxemoji">${wxIcon(x.code)}</span>${wx(x.code)}</span></td><td>${rainProbHTML(x.rain)}</td><td>${amountRangeHTML(x)}</td><td>${fmt(x.temp,0)}</td><td><span class="feel-temp">${fmt(x.feel,0)}</span></td><td>${fmt(x.wind)}</td><td>${fmt(x.gust)}</td><td>${x.dir===null||x.dir===undefined?"—":`${dir(x.dir)} ${Math.round(x.dir)}°`}</td><td>${x.rh??"—"}%</td><td>${x.cloud??"—"}%</td><td>${fmt(x.uv)}</td><td class="${cls(score(x.rain,x.wind,x.gust,x.feel))}">${score(x.rain,x.wind,x.gust,x.feel)}/100</td></tr>`).join("");
  const chartTimes=base.map(x=>x.time);
  chart("windChart",[base.map(x=>x.wind),base.map(x=>x.gust)],Math.max(30,mx("gust")||30),["#1769aa","#d97706"],chartTimes," km/h");
  chart("rainChart",[base.map(x=>x.rain)],100,["#15966a"],chartTimes,"%","rainProbability");
