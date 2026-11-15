@@ -1055,7 +1055,7 @@ async function autoLoadDatabaseCourse(c,button){
  try{
    const lat=Number(c.lat),lon=Number(c.lon);
    if(!Number.isFinite(lat)||!Number.isFinite(lon)||lat<21.5||lat>25.5||lon<119||lon>122.5)throw Error("此球場座標資料無效。");
-   $("courseAutoStatus").textContent=`${c.name}｜固定座標 ${lat.toFixed(5)}, ${lon.toFixed(5)}｜正在載入 ${date} 氣象…`;
+   $("courseAutoStatus").textContent=`${c.name}｜固定座標 ${lat.toFixed(5)}, ${lon.toFixed(5)}｜正在載入 ${selectedDate} 氣象…`;
    $("status").textContent=`${c.name}｜${lat.toFixed(5)}, ${lon.toFixed(5)}｜正在取得五組氣象模型…`;
    await loadForecast({name:c.name,address:c.address,lat,lon,source:"使用者提供的57球場固定座標清單",timezone:"Asia/Taipei"},selectedDate);
    $("courseAutoStatus").textContent=`${c.name}｜${selectedDate}｜固定座標 ${lat.toFixed(5)}, ${lon.toFixed(5)}｜${active?.forecastSource||"氣象分析完成"}`;
