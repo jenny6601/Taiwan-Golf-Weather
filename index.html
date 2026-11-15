@@ -1120,11 +1120,21 @@ function thermometerHTML(v){
 }
 
 function apparentFeelHTML(v){
- const state=apparentFeelIcon(v),color=state==="cold"?"#2563eb":state==="hot"?"#dc2626":"#16a34a";
- const face=state==="cold"?'<circle cx="12" cy="12" r="8" fill="#DBEAFE" stroke="#2563EB" stroke-width="1.5"/><path d="M9 10h.5m5 0h.5M9 16q3-3 6 0" stroke="#1D4ED8" stroke-width="1.5" stroke-linecap="round"/>':state==="hot"?'<circle cx="12" cy="12" r="8" fill="#FEE2E2" stroke="#DC2626" stroke-width="1.5"/><path d="M9 10h.5m5 0h.5M9 15q3 4 6 0" stroke="#B91C1C" stroke-width="1.5" stroke-linecap="round"/>':'<circle cx="12" cy="12" r="8" fill="#DCFCE7" stroke="#16A34A" stroke-width="1.5"/><path d="M9 10h.5m5 0h.5M9 15q3 3 6 0" stroke="#15803D" stroke-width="1.5" stroke-linecap="round"/>';
- return '<span class="feel-temp" style="color:'+color+';font-weight:700;white-space:nowrap"><svg aria-hidden="true" viewBox="0 0 24 24" width="19" height="19" style="vertical-align:-4px;margin-right:3px">'+face+'</svg>'+displayTemp(v)+'</span>';
+ const state=apparentFeelIcon(v);
+ const color=state==="cold"?"#2563eb":state==="hot"?"#dc2626":"#16a34a";
+ let art="";
+ if(state==="cold"){
+  // 冷：穿著厚冬季外套的上半身人像，含帽兜、領口與拉鍊。
+  art='<path d="M16 18 9 22Q5 25 4 34L3 43H45L44 34Q43 25 39 22L32 18 24 22Z" fill="#2563EB" stroke="#1E3A8A" stroke-width="1.8" stroke-linejoin="round"/><path d="M16 18Q16 10 24 8Q32 10 32 18L28 24H20Z" fill="#DBEAFE" stroke="#1E40AF" stroke-width="1.8"/><path d="M17 18 24 25 31 18M24 25V42" fill="none" stroke="#BFDBFE" stroke-width="2.2" stroke-linecap="round"/><path d="M18 13Q24 4 30 13" fill="none" stroke="#1E3A8A" stroke-width="3" stroke-linecap="round"/><path d="M12 29 18 27M36 29 30 27" stroke="#93C5FD" stroke-width="2" stroke-linecap="round"/><circle cx="24" cy="31" r="1.4" fill="#DBEAFE"/>';
+ }else if(state==="hot"){
+  // 熱：流汗的人頭，額側汗滴與張口表情。
+  art='<circle cx="23" cy="25" r="15" fill="#FEE2E2" stroke="#B91C1C" stroke-width="1.8"/><path d="M16 23h1m12 0h1" stroke="#7F1D1D" stroke-width="2.6" stroke-linecap="round"/><path d="M19 32Q23 28 27 32" fill="none" stroke="#B91C1C" stroke-width="2" stroke-linecap="round"/><path d="M6 17C3 12 7 8 9 5 12 10 14 14 10 18Q8 20 6 17Z" fill="#38BDF8" stroke="#0369A1" stroke-width="1.3"/><path d="M39 27C36 22 40 18 42 15 45 20 47 24 43 28Q41 30 39 27Z" fill="#38BDF8" stroke="#0369A1" stroke-width="1.3"/><path d="M15 8q8-7 16 0" fill="none" stroke="#DC2626" stroke-width="1.8" stroke-linecap="round"/>';
+ }else{
+  // 舒適：正面微笑人頭。
+  art='<circle cx="24" cy="24" r="17" fill="#DCFCE7" stroke="#15803D" stroke-width="1.8"/><path d="M17 21h1m12 0h1" stroke="#166534" stroke-width="2.6" stroke-linecap="round"/><path d="M16 28Q24 38 32 28" fill="none" stroke="#15803D" stroke-width="2.2" stroke-linecap="round"/><path d="M10 14q5-8 14-8t14 8" fill="none" stroke="#86EFAC" stroke-width="2" stroke-linecap="round"/>';
+ }
+ return '<span class="feel-temp" style="color:'+color+';font-weight:700;white-space:nowrap"><svg aria-hidden="true" viewBox="0 0 48 48" width="25" height="25" style="vertical-align:-7px;margin-right:3px;shape-rendering:geometricPrecision" xmlns="http://www.w3.org/2000/svg">'+art+'</svg>'+displayTemp(v)+'</span>';
 }
-
 function rainProbHTML(v){
  if(v===null||v===undefined)return "—";
  const n=Math.max(0,Math.min(100,Math.round(Number(v)))),level=n>=60?"high":n>=30?"mid":"low";
