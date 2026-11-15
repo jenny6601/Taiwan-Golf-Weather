@@ -919,14 +919,17 @@ const taiwanCourses = [
     "coordSource": "內政部國土測繪中心 / 實測座標"
   }
 ];
+function taiwanYmd(offsetDays=0){
+ const d=new Date(Date.now()+offsetDays*86400000);
+ const p=Object.fromEntries(new Intl.DateTimeFormat("en-US",{timeZone:"Asia/Taipei",year:"numeric",month:"2-digit",day:"2-digit"}).formatToParts(d).map(x=>[x.type,x.value]));
+ return p.year+"-"+p.month+"-"+p.day;
+}
 function initForecastDatePicker(){
  const input=$("courseDate");if(!input)return;
- const fmt=d=>new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Taipei",year:"numeric",month:"2-digit",day:"2-digit"}).format(d);
- const today=fmt(new Date()),last=fmt(new Date(Date.now()+15*86400000));
- input.min=today;input.max=last;
- if(!input.value||input.value<today||input.value>last)input.value=today;
+ const today=taiwanYmd(0),last=taiwanYmd(15);
+ input.type="date";input.min=today;input.max=last;input.value=today;input.defaultValue=today;
  input.setAttribute("aria-label","選擇未來16天內的預報日期");
- const note=$("courseAutoStatus");if(note)note.textContent="預報日期可選今天起未來16天。先選縣市，再點選球場，即自動啟動氣象 API。";
+ const note=$("courseAutoStatus");if(note)note.textContent="預報日期："+today+" 至 "+last+"（共16天）。選擇縣市後點球場即可載入。";
 }
 function initCourseDatabase(){
  const counties=[...new Set(taiwanCourses.map(c=>c.city).filter(Boolean))];
@@ -941,7 +944,7 @@ function renderCourseDatabase(){
   return;
  }
  const selected=taiwanCourses.map((c,i)=>({c,i})).filter(x=>x.c.city===city);
- $("courseList").innerHTML=selected.length?selected.map(({c,i})=>`<div class="course-item"><button type="button" data-course="${i}">⛳ ${esc(c.name)}</button><small>${esc(c.address||"")}</small><small>固定座標：${Number(c.lat).toFixed(5)}, ${Number(c.lon).toFixed(5)}</small></div>`).join(""):'<div class="muted">此縣市目前沒有球場資料。</div>';
+ $("courseList").innerHTML=selected.length?selected.map(({c,i})=>`<div class="course-item"><button type="button" data-course="${i}" onclick="window.loadCourseByIndex(${i},this)">⛳ ${esc(c.name)}</button><small>${esc(c.address||"")}</small><small>固定座標：${Number(c.lat).toFixed(5)}, ${Number(c.lon).toFixed(5)}</small></div>`).join(""):'<div class="muted">此縣市目前沒有球場資料。</div>';
 }
 
 function esc(value){
@@ -990,10 +993,7 @@ $("sources").innerHTML=sources.map(([g,a])=>`<details><summary>${g}（${a.length
  search.addEventListener('input',draw);filter.addEventListener('change',draw);draw();
  if(rows.length!==57)console.warn('V28來源筆數不是57，請檢查來源資料',rows.length);
 })();
-const now=new Date(),fmt=d=>{let x=new Date(d.getTime()-d.getTimezoneOffset()*60000);return x.toISOString().slice(0,10)};
-$("courseDate").value=fmt(now);
-$("courseDate").min=fmt(now);
-let maxDate=new Date();maxDate.setDate(maxDate.getDate()+15);$("courseDate").max=fmt(maxDate);
+// Date picker is initialized after controls are defined.
 let databaseAutoBusy=false;
 let selectedCourseForReload=null;
 let selectedCourseButton=null;
@@ -1069,12 +1069,7 @@ async function autoLoadDatabaseCourse(c,button){
    $("courseList").querySelectorAll("button[data-course]").forEach(x=>x.disabled=false);
  }
 }
-$("courseList").addEventListener("click",event=>{
- const button=event.target.closest("button[data-course]");
- if(!button||databaseAutoBusy)return;
- const c=taiwanCourses[Number(button.dataset.course)];
- if(c)autoLoadDatabaseCourse(c,button);
-});
+window.loadCourseByIndex=(index,button)=>{const c=taiwanCourses[Number(index)];if(c&&!databaseAutoBusy)autoLoadDatabaseCourse(c,button);};
 document.getElementById("quickCourseButtons").addEventListener("click",event=>{const btn=event.target.closest("button[data-quick-course]");if(!btn||databaseAutoBusy)return;const name=btn.dataset.quickCourse;const idx=taiwanCourses.findIndex(c=>c.name===name);if(idx<0)return;document.querySelectorAll("[data-quick-course]").forEach(x=>x.classList.toggle("quick-selected",x===btn));autoLoadDatabaseCourse(taiwanCourses[idx],btn);});
 // 選好球場後更改日期，立即以同一球場座標重新載入，不沿用舊日期資料。
 $("courseDate").addEventListener("change",()=>{
