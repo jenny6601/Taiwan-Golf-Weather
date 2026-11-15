@@ -141,7 +141,7 @@ footer{color:var(--muted);font-size:12px;padding:18px 0}
 <section class="panel" id="coursePickerPanel">
 <h2 style="margin:0 0 10px">選擇日期、縣市，再按球場</h2>
 <label for="courseDate">預報日期</label>
-<input id="courseDate" style="max-width:320px" type="date"/>
+<input id="courseDate" style="max-width:320px" type="date" required/>
 <label for="countySelect" style="display:block;margin-top:12px">選擇縣市</label>
 <select id="countySelect" style="width:100%;max-width:320px;padding:10px;border:1px solid #cbd5e1;border-radius:10px;background:#fff">
 <option value="">請選擇縣市</option>
@@ -919,6 +919,15 @@ const taiwanCourses = [
     "coordSource": "內政部國土測繪中心 / 實測座標"
   }
 ];
+function initForecastDatePicker(){
+ const input=$("courseDate");if(!input)return;
+ const fmt=d=>new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Taipei",year:"numeric",month:"2-digit",day:"2-digit"}).format(d);
+ const today=fmt(new Date()),last=fmt(new Date(Date.now()+15*86400000));
+ input.min=today;input.max=last;
+ if(!input.value||input.value<today||input.value>last)input.value=today;
+ input.setAttribute("aria-label","選擇未來16天內的預報日期");
+ const note=$("courseAutoStatus");if(note)note.textContent="預報日期可選今天起未來16天。先選縣市，再點選球場，即自動啟動氣象 API。";
+}
 function initCourseDatabase(){
  const counties=[...new Set(taiwanCourses.map(c=>c.city).filter(Boolean))];
  $("countySelect").innerHTML='<option value="">請選擇縣市</option>'+counties.map(city=>`<option value="${esc(city)}">${esc(city)}</option>`).join("");
@@ -1035,7 +1044,9 @@ async function geocodeGolfCourse(c,button){
 }
 async function autoLoadDatabaseCourse(c,button){
  const date=$("courseDate").value;
- if(!date){$("courseAutoStatus").textContent="請先選擇日期、縣市，再按球場按鈕。";return;}
+ if(!date)initForecastDatePicker();
+ const selectedDate=$("courseDate").value;
+ if(!selectedDate){$("courseAutoStatus").textContent="日期尚未設定，請重新選擇預報日期。";return;}
  if(databaseAutoBusy)return;
  selectedCourseForReload=c;selectedCourseButton=button;
  databaseAutoBusy=true;
@@ -1046,8 +1057,8 @@ async function autoLoadDatabaseCourse(c,button){
    if(!Number.isFinite(lat)||!Number.isFinite(lon)||lat<21.5||lat>25.5||lon<119||lon>122.5)throw Error("此球場座標資料無效。");
    $("courseAutoStatus").textContent=`${c.name}｜固定座標 ${lat.toFixed(5)}, ${lon.toFixed(5)}｜正在載入 ${date} 氣象…`;
    $("status").textContent=`${c.name}｜${lat.toFixed(5)}, ${lon.toFixed(5)}｜正在取得五組氣象模型…`;
-   await loadForecast({name:c.name,address:c.address,lat,lon,source:"使用者提供的57球場固定座標清單",timezone:"Asia/Taipei"},date);
-   $("courseAutoStatus").textContent=`${c.name}｜${date}｜固定座標 ${lat.toFixed(5)}, ${lon.toFixed(5)}｜${active?.forecastSource||"氣象分析完成"}`;
+   await loadForecast({name:c.name,address:c.address,lat,lon,source:"使用者提供的57球場固定座標清單",timezone:"Asia/Taipei"},selectedDate);
+   $("courseAutoStatus").textContent=`${c.name}｜${selectedDate}｜固定座標 ${lat.toFixed(5)}, ${lon.toFixed(5)}｜${active?.forecastSource||"氣象分析完成"}`;
  }catch(e){
    $("courseAutoStatus").textContent=`${c.name}：${e.message}`;
    $("status").textContent="V31 載入失敗："+e.message;
@@ -1363,6 +1374,7 @@ document.getElementById('validationFile').addEventListener('change',e=>{const f=
 document.getElementById('validationCourse').addEventListener('change',renderValidation);document.getElementById('validationLead').addEventListener('change',renderValidation);document.getElementById('clearValidation').addEventListener('click',()=>{validationRows=[];document.getElementById('validationFile').value='';renderValidation();});
 document.getElementById('downloadValidationTemplate').addEventListener('click',()=>{const csv=validationColumns.join(',')+'\n礁溪,2026-11-05,1,07:00,V29,35,0.4,0.0\n';const blob=new Blob(['\uFEFF'+validationColumns.join(',')+'\n'],{type:'text/csv;charset=utf-8'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='V30_降雨驗證資料範本.csv';a.click();URL.revokeObjectURL(a.href);});
 renderValidation();
+initForecastDatePicker();
 initCourseDatabase();
 
 </script>
