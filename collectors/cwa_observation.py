@@ -209,8 +209,11 @@ def build_snapshot(courses, datasets):
                 "quality_status": selected["quality_status"],
                 "quality_flags": selected["quality_flags"],
             }
+            station["observation_age_minutes"] = round(max(0, (now - selected["observed_at"]).total_seconds()) / 60, 1)
             if dataset_code == "O-A0001-001":
-                course_entry["weather"] = {"station": station, **selected["values"]}
+                element = selected["raw"].get("WeatherElement") or selected["raw"].get("weatherElement") or {}
+                weather_text = element.get("Weather") or element.get("weather")
+                course_entry["weather"] = {"station": station, "weather_text": weather_text, **selected["values"]}
             else:
                 course_entry["rainfall"] = {"station": station, **selected["values"]}
         output["courses"][cid] = course_entry
