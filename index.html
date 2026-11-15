@@ -1135,32 +1135,27 @@ function chart(id,series,maxVal,colors,labels=[],unit="",chartTheme=""){
    if(chartTheme){
     // 依每小時資料點的實際高度標註；零降雨不顯示，缺值不推定為零。
     let mark="";
-    if(chartTheme==="rainProbability"&&v>0)mark="☂";
-    else if(chartTheme==="rainAmount"&&v>0)mark="💧".repeat(v<1?1:v<5?2:3);
-    else if(chartTheme==="temperature")mark=Math.round(v).toString()+"°";
-    if(mark){
-     ctx.save();
-     ctx.font=chartTheme==="temperature"?"bold 12px system-ui,sans-serif":chartTheme==="rainProbability"?"20px sans-serif":"15px 'Noto Color Emoji','Apple Color Emoji',sans-serif";
-     ctx.textAlign="center";ctx.textBaseline="bottom";
-     const umbrellaColors=["#87CEEB","#164A9C","#E53935","#8E24AA","#171717"];
-     ctx.fillStyle=chartTheme==="temperature"?colors[si%colors.length]:chartTheme==="rainProbability"?umbrellaColors[Math.max(0,Math.min(4,Math.ceil(v/20)-1))]:"#17212b";
-     // 氣溫標籤與曲線拉開：氣溫置於線上方，體感置於線下方。
+    if(chartTheme==="temperature")mark=Math.round(v).toString()+"°";
+    if(mark||chartTheme==="rainProbability"||chartTheme==="rainAmount"){
+     ctx.save();ctx.textAlign="center";ctx.textBaseline="bottom";
      let markY=chartTheme==="temperature"?(si===0?y-13:y+27):y-7;
      const drawY=Math.max(13,Math.min(h-bottom+29,markY));
-     if(chartTheme==="rainAmount"){
-      // 雨滴緊密排列：中心對齊，間距小於圖示寬度，形成連續雨滴群。
-      const count=mark.length;
-      for(let drop=0;drop<count;drop++){
-       const offset=(drop-(count-1)/2)*9;
-       ctx.fillText("💧",x+offset,drawY);
+     if(chartTheme==="rainProbability"){
+      ctx.translate(x,drawY-10);ctx.scale(.43,.43);ctx.lineCap="round";ctx.lineJoin="round";
+      if(v<30){
+       ctx.translate(-275,-177);ctx.beginPath();ctx.moveTo(120,198);ctx.bezierCurveTo(122,88,208,5,331,5);ctx.bezierCurveTo(454,5,542,103,545,236);ctx.bezierCurveTo(546,283,490,292,425,270);ctx.moveTo(120,198);ctx.bezierCurveTo(210,191,323,217,425,270);ctx.moveTo(350,237);ctx.bezierCurveTo(344,177,341,91,331,5);ctx.moveTo(238,204);ctx.bezierCurveTo(238,120,269,43,331,5);ctx.moveTo(120,198);ctx.bezierCurveTo(91,216,47,240,18,259);ctx.bezierCurveTo(-2,273,21,298,54,304);ctx.bezierCurveTo(89,311,117,294,141,303);ctx.bezierCurveTo(172,314,183,345,232,349);ctx.bezierCurveTo(285,353,323,313,350,274);ctx.strokeStyle="#111318";ctx.lineWidth=10;ctx.stroke();
+      }else if(v<60){
+       ctx.translate(-24,-21);ctx.beginPath();ctx.moveTo(17,10);ctx.quadraticCurveTo(17,3,24,3);ctx.quadraticCurveTo(31,3,31,10);ctx.lineTo(37,14);ctx.lineTo(45,26);ctx.lineTo(39,31);ctx.lineTo(34,25);ctx.lineTo(34,39);ctx.lineTo(14,39);ctx.lineTo(14,25);ctx.lineTo(9,31);ctx.lineTo(3,26);ctx.lineTo(11,14);ctx.closePath();ctx.fillStyle="#FDE047";ctx.strokeStyle="#854D0E";ctx.lineWidth=2.2;ctx.fill();ctx.stroke();ctx.beginPath();ctx.moveTo(17,10);ctx.quadraticCurveTo(24,18,31,10);ctx.moveTo(24,17);ctx.lineTo(24,38);ctx.strokeStyle="#A16207";ctx.lineWidth=1.8;ctx.stroke();
+      }else{
+       ctx.translate(-24,-20);ctx.beginPath();ctx.moveTo(4,20);ctx.quadraticCurveTo(6,5,24,4);ctx.quadraticCurveTo(42,5,44,20);ctx.quadraticCurveTo(39,16,34,20);ctx.quadraticCurveTo(29,16,24,20);ctx.quadraticCurveTo(19,16,14,20);ctx.quadraticCurveTo(9,16,4,20);ctx.closePath();ctx.fillStyle="#EF4444";ctx.strokeStyle="#7F1D1D";ctx.lineWidth=2;ctx.fill();ctx.stroke();ctx.beginPath();ctx.moveTo(24,20);ctx.lineTo(24,33);ctx.quadraticCurveTo(24,39,31,37);ctx.strokeStyle="#1F2937";ctx.lineWidth=2.8;ctx.stroke();
       }
-     }else if(chartTheme==="rainProbability"){
-      // 每個時段只顯示一支小雨傘，以五種顏色代表降雨機率級距。
-      ctx.fillText("☂",x,drawY);
-     }else{
-      ctx.fillText(mark,x,drawY);
-     }
+     }else if(chartTheme==="rainAmount"){
+      ctx.translate(x,drawY-10);
+      if(v<=0){ctx.beginPath();ctx.arc(-5,-1,6,Math.PI*.85,Math.PI*1.9);ctx.arc(2,-5,8,Math.PI*1.05,Math.PI*1.95);ctx.arc(9,-1,6,Math.PI*1.3,Math.PI*.55);ctx.closePath();ctx.fillStyle="#CBD5E1";ctx.strokeStyle="#64748B";ctx.lineWidth=1.5;ctx.fill();ctx.stroke();}
+      else{const count=v<1?1:v<5?2:3;for(let d=0;d<count;d++){const dx=(d-(count-1)/2)*9;ctx.beginPath();ctx.moveTo(dx,-10);ctx.bezierCurveTo(dx-3,-4,dx-6,0,dx-6,4);ctx.arc(dx,4,6,Math.PI,0);ctx.bezierCurveTo(dx+6,0,dx+3,-4,dx,-10);ctx.closePath();ctx.fillStyle="#38BDF8";ctx.strokeStyle="#0369A1";ctx.lineWidth=1;ctx.fill();ctx.stroke();}}
+     }else{ctx.font="bold 12px system-ui,sans-serif";ctx.fillStyle=colors[si%colors.length];ctx.fillText(mark,x,drawY);}
      ctx.restore();
+    }
     }
    }
   });
