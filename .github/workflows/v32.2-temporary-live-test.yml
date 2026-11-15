@@ -1,0 +1,57 @@
+name: V32.2 Temporary Nationwide Observation Test
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: v32-2-temporary-live-test
+  cancel-in-progress: false
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout V32.2 feature branch
+        uses: actions/checkout@v4
+        with:
+          ref: feature/v32.2-57-course-live-observations
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Collect and persist CWA observations for 57 courses
+        env:
+          CWA_API_KEY: ${{ secrets.CWA_API_KEY }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+        run: python -m scripts.collect_observations --source cwa
+
+      - name: Verify snapshot exists
+        run: |
+          test -s data/live_observations.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          payload = json.loads(Path("data/live_observations.json").read_text(encoding="utf-8"))
+          print("Snapshot generated. Top-level type:", type(payload).__name__)
+          print("Top-level keys:", list(payload)[:20] if isinstance(payload, dict) else len(payload))
+          PY
+
+      - name: Upload observation snapshot for inspection
+        uses: actions/upload-artifact@v4
+        with:
+          name: v32.2-live-observations-test
+          path: data/live_observations.json
+          if-no-files-found: error
+          retention-days: 7
