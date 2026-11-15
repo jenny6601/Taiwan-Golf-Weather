@@ -1103,7 +1103,7 @@ async function loadLiveObservation(course){
    liveMetric("近10分鐘雨量",rainHtml),liveMetric("近1小時雨量",liveFmt(rain1h,1," mm")),
    liveMetric("風速",liveFmt(windKm,1," km/h")),liveMetric("陣風",liveFmt(gustKm,1," km/h"))
   ].join("");
-  const ages=[ws&&ws.observation_age_minutes,rs&&rs.observation_age_minutes].filter(x=>Number.isFinite(Number(x)));
+  const ages=[ws&&ws.observation_age_minutes,rs&&rs.observation_age_minutes].filter(x=>x!==null&&x!==undefined&&Number.isFinite(Number(x)));
   const snapshotAge=Math.max(0,(Date.now()-new Date(snap.generated_at).getTime())/60000);
   const maxAge=ages.length?Math.max.apply(null,ages)+snapshotAge:null,stale=maxAge===null||maxAge>60,warning=maxAge!==null&&maxAge>30&&maxAge<=60;
   state.className="pill "+(stale||warning?"live-state-stale":"live-state-fresh");
