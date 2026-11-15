@@ -1211,7 +1211,7 @@ function chart(id,series,maxVal,colors,labels=[],unit="",chartTheme="",weatherCo
      ctx.restore();
     }
    }else if(chartTheme==="rainProbability"){
-    const p=Math.max(0,Math.min(100,Math.round(v))),pointY=topPad+plotH-(v/top)*plotH,cy=Math.max(13,pointY-22);
+    const p=Math.max(0,Math.min(100,Math.round(v))),pointY=topPad+plotH-(v/top)*plotH,cy=Math.max(13,pointY-24);
     ctx.save();ctx.lineCap="round";ctx.lineJoin="round";
     if(p>=60){
      ctx.beginPath();ctx.moveTo(x-10,cy+1);ctx.quadraticCurveTo(x-9,cy-11,x,cy-11);ctx.quadraticCurveTo(x+9,cy-11,x+10,cy+1);ctx.quadraticCurveTo(x+5,cy-2,x+2,cy+1);ctx.quadraticCurveTo(x,cy-2,x-2,cy+1);ctx.quadraticCurveTo(x-5,cy-2,x-10,cy+1);ctx.closePath();ctx.fillStyle="#EF4444";ctx.strokeStyle="#7F1D1D";ctx.lineWidth=2;ctx.fill();ctx.stroke();
