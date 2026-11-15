@@ -1104,7 +1104,7 @@ function cls(v){return v>=75?"good":v>=50?"mid":"bad";}
 function dir(v){if(v===null||v===undefined)return "—";return ["北","東北","東","東南","南","西南","西","西北"][Math.round(v/45)%8];}
 function apparentFeelIcon(v){
  if(v===null||v===undefined||!Number.isFinite(Number(v)))return "normal";
- const n=Number(v);if(n<=18)return "cold";if(n>=30)return "hot";return "normal";
+ const n=Number(v);if(n<20)return "cold";if(n>=28)return "hot";return "normal";
 }
 
 function airTempColor(v){
