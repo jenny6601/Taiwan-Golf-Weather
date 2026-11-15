@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>V32.1 即時雨況圖示試作與檢測</title>
+<style>
+:root{font-family:system-ui,-apple-system,"Noto Sans TC",sans-serif;color:#17212b;background:#f3f6f8}
+*{box-sizing:border-box}body{margin:0;padding:22px}.wrap{max-width:920px;margin:auto}
+h1{font-size:clamp(22px,4vw,30px);margin:0 0 8px}.sub{color:#64748b;margin:0 0 22px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:12px}
+.card{background:#fff;border:1px solid #dce4ea;border-radius:16px;padding:16px 10px;text-align:center;box-shadow:0 2px 8px #1020300a}
+svg{width:104px;height:88px;display:block;margin:0 auto 8px}.name{font-weight:700}.desc{font-size:13px;color:#64748b;margin-top:4px}
+.note,.test{margin-top:18px;padding:14px 16px;background:#fff;border:1px solid #dce4ea;border-radius:12px}
+.test ul{margin:8px 0 0;padding-left:20px}.pass{color:#16794b}.fail{color:#b42318}
+.small{font-size:12px;color:#64748b}
+</style>
+</head>
+<body>
+<main class="wrap">
+<h1>V32.1｜即時雨況圖示試作</h1>
+<p class="sub">圖示原型檢測：雨絲數量、強度顏色及雷雨閃電。此頁為測試樣稿，不代表即時氣象觀測。</p>
+<div class="grid" id="iconGrid">
+  <article class="card">
+    <svg viewBox="0 0 120 96" role="img" aria-label="無降雨">
+      <circle cx="82" cy="25" r="13" fill="#f5c84c"/><path d="M82 5v-5M82 50v-5M62 25h-6M108 25h-6M68 11l-4-4M100 43l-4-4" stroke="#d69a22" stroke-width="3" stroke-linecap="round"/>
+      <path d="M25 66c-9 0-15-6-15-14 0-8 7-14 16-14 3-13 14-21 27-21 14 0 25 9 28 22 11 0 19 6 19 14 0 8-7 13-17 13Z" fill="#e8f1f7" stroke="#647f91" stroke-width="3" stroke-linejoin="round"/>
+    </svg>
+    <div class="name">目前無降雨</div><div class="desc">無雨絲</div>
+  </article>
+  <article class="card">
+    <svg viewBox="0 0 120 96" role="img" aria-label="毛毛雨">
+      <path d="M25 59c-9 0-15-6-15-14 0-8 7-14 16-14 3-13 14-21 27-21 14 0 25 9 28 22 11 0 19 6 19 14 0 8-7 13-17 13Z" fill="#e8f1f7" stroke="#647f91" stroke-width="3" stroke-linejoin="round"/>
+      <g stroke="#76b9df" stroke-width="2" stroke-linecap="round"><path d="M35 69l-3 7M58 69l-3 7M81 69l-3 7"/></g>
+    </svg>
+    <div class="name">毛毛雨</div><div class="desc">細雨絲</div>
+  </article>
+  <article class="card">
+    <svg viewBox="0 0 120 96" role="img" aria-label="小雨，2條藍色雨絲">
+      <path d="M25 59c-9 0-15-6-15-14 0-8 7-14 16-14 3-13 14-21 27-21 14 0 25 9 28 22 11 0 19 6 19 14 0 8-7 13-17 13Z" fill="#e8f1f7" stroke="#647f91" stroke-width="3" stroke-linejoin="round"/>
+      <g class="rain-drop" data-color="blue" stroke="#2586c7" stroke-width="4" stroke-linecap="round"><path d="M42 69l-5 12M76 69l-5 12"/></g>
+    </svg>
+    <div class="name">小雨</div><div class="desc">2 條藍色雨絲</div>
+  </article>
+  <article class="card">
+    <svg viewBox="0 0 120 96" role="img" aria-label="中雨，3條藍色雨絲">
+      <path d="M25 59c-9 0-15-6-15-14 0-8 7-14 16-14 3-13 14-21 27-21 14 0 25 9 28 22 11 0 19 6 19 14 0 8-7 13-17 13Z" fill="#e8f1f7" stroke="#647f91" stroke-width="3" stroke-linejoin="round"/>
+      <g class="rain-drop" data-color="blue" stroke="#2586c7" stroke-width="4" stroke-linecap="round"><path d="M31 69l-5 12M59 69l-5 12M87 69l-5 12"/></g>
+    </svg>
+    <div class="name">中雨</div><div class="desc">3 條藍色雨絲</div>
+  </article>
+  <article class="card">
+    <svg viewBox="0 0 120 96" role="img" aria-label="大雨，4條紅色雨絲">
+      <path d="M25 55c-9 0-15-6-15-14 0-8 7-14 16-14 3-13 14-21 27-21 14 0 25 9 28 22 11 0 19 6 19 14 0 8-7 13-17 13Z" fill="#fff0f0" stroke="#c62828" stroke-width="3" stroke-linejoin="round"/>
+      <g class="rain-drop" data-color="red" stroke="#d32f2f" stroke-width="4.5" stroke-linecap="round"><path d="M23 66l-5 13M47 66l-5 13M71 66l-5 13M95 66l-5 13"/></g>
+    </svg>
+    <div class="name">大雨</div><div class="desc">4 條紅色雨絲</div>
+  </article>
+  <article class="card">
+    <svg viewBox="0 0 120 96" role="img" aria-label="雷雨，4條紅色雨絲及黃色閃電">
+      <path d="M25 53c-9 0-15-6-15-14 0-8 7-14 16-14 3-13 14-21 27-21 14 0 25 9 28 22 11 0 19 6 19 14 0 8-7 13-17 13Z" fill="#fff0f0" stroke="#c62828" stroke-width="3" stroke-linejoin="round"/>
+      <g class="rain-drop" data-color="red" stroke="#d32f2f" stroke-width="4.5" stroke-linecap="round"><path d="M20 64l-5 13M43 64l-5 13M88 64l-5 13M108 64l-5 13"/></g>
+      <path class="lightning" d="M66 51L51 74h12l-5 19 22-29H67l8-13Z" fill="#ffd22e" stroke="#d69a00" stroke-width="2" stroke-linejoin="round"/>
+    </svg>
+    <div class="name">雷雨</div><div class="desc">4 條紅色雨絲＋黃色閃電</div>
+  </article>
+</div>
+<section class="test">
+  <strong>自動檢測結果</strong>
+  <ul id="testResults"><li>正在檢測…</li></ul>
+</section>
+<section class="note">
+  <strong>本次圖示規則</strong>
+  <p>小雨 2 條藍色雨絲；中雨 3 條藍色雨絲；大雨 4 條紅色雨絲；雷雨為 4 條紅色雨絲加黃色閃電。毛毛雨以較細的藍色雨絲表示。</p>
+  <p class="small">提醒：此原型只驗證圖示呈現，不含雨量門檻、即時資料來源或降雨狀態判定。</p>
+</section>
+</main>
+<script>
+const checks=[
+  ["小雨恰有 2 條藍色雨絲",()=>{const e=document.querySelector('[aria-label^="小雨"] .rain-drop');return e&&e.querySelectorAll('path').length===2&&e.dataset.color==="blue"}],
+  ["中雨恰有 3 條藍色雨絲",()=>{const e=document.querySelector('[aria-label^="中雨"] .rain-drop');return e&&e.querySelectorAll('path').length===3&&e.dataset.color==="blue"}],
+  ["大雨恰有 4 條紅色雨絲",()=>{const e=document.querySelector('[aria-label^="大雨"] .rain-drop');return e&&e.querySelectorAll('path').length===4&&e.dataset.color==="red"}],
+  ["雷雨恰有 4 條紅色雨絲",()=>{const e=document.querySelector('[aria-label^="雷雨"] .rain-drop');return e&&e.querySelectorAll('path').length===4&&e.dataset.color==="red"}],
+  ["雷雨包含黃色閃電",()=>{const e=document.querySelector('[aria-label^="雷雨"] .lightning');return !!e&&e.getAttribute('fill')==="#ffd22e"}],
+  ["毛毛雨使用細雨絲",()=>{const e=document.querySelector('[aria-label="毛毛雨"] svg')||document.querySelector('svg[aria-label="毛毛雨"]');return !!e&&e.querySelectorAll('path').length>=3}]
+];
+const list=document.getElementById('testResults');list.innerHTML="";
+checks.forEach(([label,fn])=>{let ok=false;try{ok=!!fn()}catch(e){}const li=document.createElement('li');li.textContent=(ok?"PASS｜":"FAIL｜")+label;li.className=ok?"pass":"fail";list.appendChild(li)});
+</script>
+</body>
+</html>
