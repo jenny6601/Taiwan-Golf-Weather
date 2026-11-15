@@ -1087,7 +1087,6 @@ const modelDefs=[
 const hourlyVars="temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,weather_code,wind_speed_10m,wind_gusts_10m,wind_direction_10m,cloud_cover,uv_index";
 function wxIcon(code){
  const n=Number(code),svg=(body,label)=>'<svg class="wx-icon" viewBox="0 0 48 42" role="img" aria-label="'+label+'" xmlns="http://www.w3.org/2000/svg">'+body+'</svg>';
- if(code===null||code===undefined||code===""||!Number.isFinite(n))return '<span aria-label="天氣資料不足">—</span>';
  const sun='<circle cx="16" cy="13" r="7" fill="#FDBA32" stroke="#B7791F" stroke-width="1.5"/><g stroke="#D97706" stroke-width="2" stroke-linecap="round"><path d="M16 1v4M16 21v4M4 13H1m30 0h-4M7 4l3 3m12 12 3 3m0-18-3 3M10 19l-3 3"/></g>';
  const cloud='<path d="M10 30h27a8 8 0 0 0 0-16 12 12 0 0 0-23-2A9 9 0 0 0 10 30Z" fill="url(#cloudFill)" stroke="#64748B" stroke-width="1.6" stroke-linejoin="round"/>';
  const defs='<defs><linearGradient id="cloudFill" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#fff"/><stop offset="1" stop-color="#CBD5E1"/></linearGradient><linearGradient id="rainFill" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#38BDF8"/><stop offset="1" stop-color="#0369A1"/></linearGradient></defs>';
