@@ -22,7 +22,7 @@ button{background:var(--green);color:white;border:0;font-weight:700;cursor:point
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}.tablewrap{overflow:auto}table{border-collapse:collapse;width:100%;min-width:900px;font-size:13px}th,td{text-align:center;padding:9px 8px;border-bottom:1px solid var(--line);white-space:nowrap}th{background:#f8fafc;position:sticky;top:0}td:first-child,th:first-child{text-align:left}
 .feel-temp,.feel-label{color:#dc2626!important;font-weight:800}.metric strong.feel-temp{color:#dc2626!important}.tablewrap td .feel-temp{color:#dc2626!important}.good{color:#137c55;font-weight:700}.warn{color:#a16207;font-weight:700}.bad{color:#b42318;font-weight:700}
 .wxcell{display:inline-flex;align-items:center;gap:6px;font-weight:700;white-space:nowrap}
-.wxemoji{display:inline-flex;align-items:center;justify-content:center;width:28px;height:24px;line-height:1}.wxemoji svg{display:block;width:28px;height:24px;overflow:visible}.rainpill{display:inline-flex;align-items:center;gap:5px;padding:3px 8px;border-radius:99px;background:#eff6ff;color:#175b9a;font-weight:700}
+.wxemoji{display:inline-flex;align-items:center;justify-content:center;width:28px;height:24px;line-height:1}.wxemoji svg{display:block;width:32px;height:28px;overflow:visible;shape-rendering:geometricPrecision}.rainpill{display:inline-flex;align-items:center;gap:3px;padding:3px 7px;border-radius:99px;background:#eff6ff;color:#175b9a;font-weight:700}
 .rainpill.low{background:#f1f5f9;color:#64748b}.rainpill.mid{background:#fff7ed;color:#a16207}.rainpill.high{background:#fee2e2;color:#b42318}
 .rainamount{display:inline-flex;align-items:center;gap:5px;font-weight:700}.rainamount.none{color:#94a3b8}.rainamount.light{color:#2563a6}.rainamount.heavy{color:#b42318}
 .legend{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}.legend span{font-size:12px;padding:4px 8px;border-radius:8px;background:#f8fafc;border:1px solid var(--line)}
@@ -126,7 +126,7 @@ footer{color:var(--muted);font-size:12px;padding:18px 0}
   #hourlyForecastTable th:nth-child(n+7),#hourlyForecastTable td:nth-child(n+7){width:82px;min-width:82px;max-width:82px;}
   #hourlyForecastTable .wxcell{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;font-size:9px;white-space:normal;}
   #hourlyForecastTable .wxemoji{font-size:17px;line-height:1.1;}
-  #hourlyForecastTable .rainpill{display:inline-flex;justify-content:center;gap:1px;padding:2px 3px;font-size:9px;white-space:nowrap;}
+  #hourlyForecastTable .rainpill{display:inline-flex;justify-content:center;gap:1px;padding:2px 3px;font-size:10px;white-space:nowrap;} #hourlyForecastTable .rainpill svg{max-width:17px;max-height:15px;}
   #hourlyForecastTable .rainamount{display:inline-flex;justify-content:center;gap:1px;font-size:9px;white-space:normal;}
   #hourlyForecastTable th:nth-child(-n+6){position:sticky;top:0;background:#e8f3ed;}
   #hourlyForecastTable td:nth-child(-n+6){background:#fbfefc;}
@@ -1128,8 +1128,8 @@ function apparentFeelHTML(v){
 function rainProbHTML(v){
  if(v===null||v===undefined)return "—";
  const n=Math.max(0,Math.min(100,Math.round(Number(v)))),level=n>=60?"high":n>=30?"mid":"low";
- const common='viewBox="0 0 48 42" aria-hidden="true" style="width:36px;height:32px;vertical-align:-8px;margin-right:3px"';
- const cap='<svg viewBox="0 0 550 354" aria-hidden="true" style="width:46px;height:30px;vertical-align:-8px;margin-right:3px"><g fill="none" stroke="#111318" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"><path d="M120 198C122 88 208 5 331 5c123 0 211 98 214 231 1 47-55 56-120 34"/><path d="M120 198C210 191 323 217 425 270"/><path d="M350 237C344 177 341 91 331 5"/><path d="M238 204C238 120 269 43 331 5"/><path d="M120 198C91 216 47 240 18 259C-2 273 21 298 54 304c35 7 63-10 87-1 31 11 42 42 91 46 53 4 91-36 118-75l75-4"/></g></svg>';
+ const common='viewBox="0 0 48 42" aria-hidden="true" style="width:24px;height:21px;vertical-align:-5px;margin-right:2px;flex:none"';
+ const cap='<svg viewBox="0 0 550 354" aria-hidden="true" style="width:25px;height:16px;vertical-align:-4px;margin-right:2px;flex:none"><g fill="none" stroke="#111318" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"><path d="M120 198C122 88 208 5 331 5c123 0 211 98 214 231 1 47-55 56-120 34"/><path d="M120 198C210 191 323 217 425 270"/><path d="M350 237C344 177 341 91 331 5"/><path d="M238 204C238 120 269 43 331 5"/><path d="M120 198C91 216 47 240 18 259C-2 273 21 298 54 304c35 7 63-10 87-1 31 11 42 42 91 46 53 4 91-36 118-75l75-4"/></g></svg>';
  const jacket='<svg '+common+'><path d="M17 10Q17 3 24 3Q31 3 31 10L37 14 45 26 39 31 34 25 34 39H14V25L9 31 3 26 11 14Z" fill="#FDE047" stroke="#854D0E" stroke-width="2.2" stroke-linejoin="round"/><path d="M17 10Q24 18 31 10M17 10 13 16M31 10l4 6" fill="none" stroke="#A16207" stroke-width="1.8" stroke-linejoin="round"/><path d="M24 17v21M21 23h2m2 0h2" stroke="#854D0E" stroke-width="1.8" stroke-linecap="round"/><path d="M15 34h18M7 27l4 2m30-2-4 2" stroke="#A16207" stroke-width="1.6" stroke-linecap="round"/></svg>';
  const umbrella='<svg '+common+'><path d="M4 20Q6 5 24 4Q42 5 44 20Q39 16 34 20Q29 16 24 20Q19 16 14 20Q9 16 4 20Z" fill="#EF4444" stroke="#7F1D1D" stroke-width="2" stroke-linejoin="round"/><path d="M24 20v13q0 6 7 4" fill="none" stroke="#1F2937" stroke-width="2.8" stroke-linecap="round"/><path d="m11 25-3 6m16-6-3 6m16-6-3 6" stroke="#0284C7" stroke-width="2.2" stroke-linecap="round"/></svg>';
  const icon=n>=60?umbrella:n>=30?jacket:cap,label=n>=60?"高降雨機率":n>=30?"中降雨機率":"低降雨機率";
@@ -1150,10 +1150,13 @@ function chart(id,series,maxVal,colors,labels=[],unit="",chartTheme="",weatherCo
  const canvas=el.tagName==="CANVAS"?el:el.querySelector("canvas");
  if(!canvas)return;
  const ctx=canvas.getContext("2d");if(!ctx)return;
- const w=canvas.width=canvas.clientWidth||600,h=220;
- ctx.clearRect(0,0,w,h);
+ const dpr=Math.max(1,Math.min(3,window.devicePixelRatio||1)),cssW=canvas.clientWidth||600,cssH=240,w=Math.round(cssW*dpr),h=Math.round(cssH*dpr);
+ canvas.width=w;canvas.height=h;canvas.style.width="100%";canvas.style.height=cssH+"px";
+ ctx.setTransform(dpr,0,0,dpr,0,0);
+ const cw=cssW,ch=cssH;
+ ctx.clearRect(0,0,cw,ch);
  const vals=series.flat().filter(v=>v!==null&&Number.isFinite(v));if(!vals.length)return;
- const left=48,right=12,topPad=chartTheme==="temperature"?38:chartTheme==="rainProbability"?50:16,bottom=42,plotH=h-topPad-bottom,plotW=w-left-right;
+ const left=48,right=12,topPad=chartTheme==="temperature"?42:chartTheme==="rainProbability"?50:20,bottom=42,plotH=ch-topPad-bottom,plotW=cw-left-right;
  const top=maxVal||Math.max(...vals,1);
  ctx.font="12px sans-serif";ctx.textAlign="right";ctx.textBaseline="middle";
  for(let t=0;t<=4;t++){
@@ -1192,7 +1195,7 @@ function chart(id,series,maxVal,colors,labels=[],unit="",chartTheme="",weatherCo
      ctx.restore();
     }
    }else if(chartTheme==="rainProbability"){
-    const p=Math.max(0,Math.min(100,Math.round(v))),cy=18;
+    const p=Math.max(0,Math.min(100,Math.round(v))),pointY=topPad+plotH-(v/top)*plotH,cy=Math.max(13,pointY-22);
     ctx.save();ctx.lineCap="round";ctx.lineJoin="round";
     if(p>=60){
      ctx.beginPath();ctx.moveTo(x-10,cy+1);ctx.quadraticCurveTo(x-9,cy-11,x,cy-11);ctx.quadraticCurveTo(x+9,cy-11,x+10,cy+1);ctx.quadraticCurveTo(x+5,cy-2,x+2,cy+1);ctx.quadraticCurveTo(x,cy-2,x-2,cy+1);ctx.quadraticCurveTo(x-5,cy-2,x-10,cy+1);ctx.closePath();ctx.fillStyle="#EF4444";ctx.strokeStyle="#7F1D1D";ctx.lineWidth=2;ctx.fill();ctx.stroke();
