@@ -1217,7 +1217,7 @@ function chart(id,series,maxVal,colors,labels=[],unit="",chartTheme="",weatherCo
     ctx.restore();
    }else if(chartTheme==="temperature"){
     ctx.save();ctx.textAlign="center";ctx.textBaseline="bottom";ctx.font="bold 12px system-ui,sans-serif";ctx.fillStyle=colors[si%colors.length];
-    const markY=si===0?y-13:y+27;const drawY=Math.max(13,Math.min(h-bottom+29,markY));ctx.fillText(Math.round(v)+"°",x,drawY);ctx.restore();
+    const markY=si===0?y-13:y+27;const drawY=Math.max(13,Math.min(ch-bottom+29,markY));ctx.fillText(Math.round(v)+"°",x,drawY);ctx.restore();
    }
   });
  });
