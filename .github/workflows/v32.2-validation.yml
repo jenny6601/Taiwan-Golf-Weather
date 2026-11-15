@@ -1,0 +1,48 @@
+name: V32.2 Validation
+
+on:
+  pull_request:
+    paths:
+      - "collectors/**"
+      - "config/taiwan_golf_courses.json"
+      - "supabase/migrations/**"
+      - "v32.1-preview.html"
+      - ".github/workflows/v32-observation-collector.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Compile Python collectors
+        run: python -m compileall -q collectors scripts
+      - name: Validate 57-course registry
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          data = json.loads(Path("config/taiwan_golf_courses.json").read_text(encoding="utf-8"))
+          courses = data["courses"]
+          assert len(courses) == 57, len(courses)
+          assert len({c["id"] for c in courses}) == 57
+          assert all(21.5 <= c["latitude"] <= 25.5 and 119 <= c["longitude"] <= 122.5 for c in courses)
+          assert any(c["id"] == "JIAOXI" for c in courses)
+          print("57 unique courses and coordinates validated")
+          PY
+      - name: Validate preview integration markers
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          html = Path("v32.1-preview.html").read_text(encoding="utf-8")
+          required = ["id=\"liveObservationPanel\"", "function loadLiveObservation(course)", "function wxIcon(code)", "function rainInterpretation(prob,mm)", "data/live_observations.json"]
+          missing = [x for x in required if x not in html]
+          assert not missing, missing
+          assert html.count('id="liveObservationPanel"') == 1
+          print("V31.6 visual base and live observation panel markers validated")
+          PY
