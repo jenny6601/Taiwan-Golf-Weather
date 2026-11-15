@@ -1,4 +1,9 @@
 -- V32.2: Register all 57 Taiwan golf courses for live observation station mapping.
+-- Preserve separate rolling rainfall windows from CWA O-A0002-001.
+alter table public.observation_hourly
+  add column if not exists precipitation_10m_mm double precision,
+  add column if not exists precipitation_1h_mm double precision;
+
 -- Run after 202611130001_v32_1_observations.sql.
 insert into public.courses (id,name,county,address,latitude,longitude,timezone,active)
 values
