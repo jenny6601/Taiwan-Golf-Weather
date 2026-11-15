@@ -144,7 +144,7 @@ footer{color:var(--muted);font-size:12px;padding:18px 0}
 </style>
 </head>
 <body>
-<header><div class="wrap"><h1>⛳ 台灣高爾夫球場天氣預測V31.6｜分級降雨圖示與溫度數字版</h1><p>台灣球場資料庫・縣市篩選・手動座標・氣溫／體感溫度逐時分析</p></div></header>
+<header><div class="wrap"><h1>⛳ 台灣高爾夫球場天氣預測V32.2｜全台57球場即時觀測</h1><p>台灣球場資料庫・縣市篩選・手動座標・氣溫／體感溫度逐時分析</p></div></header>
 <main class="wrap">
 <section class="panel" id="coursePickerPanel">
 <h2 style="margin:0 0 10px">選擇日期、縣市，再按球場</h2>
@@ -1104,7 +1104,8 @@ async function loadLiveObservation(course){
    liveMetric("風速",liveFmt(windKm,1," km/h")),liveMetric("陣風",liveFmt(gustKm,1," km/h"))
   ].join("");
   const ages=[ws&&ws.observation_age_minutes,rs&&rs.observation_age_minutes].filter(x=>Number.isFinite(Number(x)));
-  const maxAge=ages.length?Math.max.apply(null,ages):null,stale=maxAge===null||maxAge>60,warning=maxAge!==null&&maxAge>30&&maxAge<=60;
+  const snapshotAge=Math.max(0,(Date.now()-new Date(snap.generated_at).getTime())/60000);
+  const maxAge=ages.length?Math.max.apply(null,ages)+snapshotAge:null,stale=maxAge===null||maxAge>60,warning=maxAge!==null&&maxAge>30&&maxAge<=60;
   state.className="pill "+(stale||warning?"live-state-stale":"live-state-fresh");
   state.textContent=stale?"資料延遲／不足":warning?"觀測資料稍舊":"觀測資料正常";
   const tm=x=>x&&x.observed_at?new Date(x.observed_at).toLocaleString("zh-TW",{timeZone:"Asia/Taipei",hour12:false}):"無資料";
@@ -1132,9 +1133,9 @@ async function autoLoadDatabaseCourse(c,button){
    if(!Number.isFinite(lat)||!Number.isFinite(lon)||lat<21.5||lat>25.5||lon<119||lon>122.5)throw Error("此球場座標資料無效。");
    $("courseAutoStatus").textContent=`${c.name}｜固定座標 ${lat.toFixed(5)}, ${lon.toFixed(5)}｜正在載入 ${selectedDate} 氣象…`;
    $("status").textContent=`${c.name}｜${lat.toFixed(5)}, ${lon.toFixed(5)}｜正在取得五組氣象模型…`;
+   loadLiveObservation(c);
    await loadForecast({name:c.name,address:c.address,lat,lon,source:"使用者提供的57球場固定座標清單",timezone:"Asia/Taipei"},selectedDate);
    $("courseAutoStatus").textContent=`${c.name}｜${selectedDate}｜固定座標 ${lat.toFixed(5)}, ${lon.toFixed(5)}｜${active?.forecastSource||"氣象分析完成"}`;
-   loadLiveObservation(c);
  }catch(e){
    $("courseAutoStatus").textContent=`${c.name}：${e.message}`;
    $("status").textContent="V31 載入失敗："+e.message;
