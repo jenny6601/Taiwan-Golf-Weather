@@ -22,7 +22,7 @@ button{background:var(--green);color:white;border:0;font-weight:700;cursor:point
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}.tablewrap{overflow:auto}table{border-collapse:collapse;width:100%;min-width:900px;font-size:13px}th,td{text-align:center;padding:9px 8px;border-bottom:1px solid var(--line);white-space:nowrap}th{background:#f8fafc;position:sticky;top:0}td:first-child,th:first-child{text-align:left}
 .feel-temp,.feel-label{color:#dc2626!important;font-weight:800}.metric strong.feel-temp{color:#dc2626!important}.tablewrap td .feel-temp{color:#dc2626!important}.good{color:#137c55;font-weight:700}.warn{color:#a16207;font-weight:700}.bad{color:#b42318;font-weight:700}
 .wxcell{display:inline-flex;align-items:center;gap:6px;font-weight:700;white-space:nowrap}
-.wxemoji{font-size:21px;line-height:1}.rainpill{display:inline-flex;align-items:center;gap:5px;padding:3px 8px;border-radius:99px;background:#eff6ff;color:#175b9a;font-weight:700}
+.wxemoji{font-size:21px;line-height:1}.rain-svg{width:28px;height:26px;display:inline-block;vertical-align:middle;flex:0 0 28px}.rainpill{display:inline-flex;align-items:center;gap:5px;padding:3px 8px;border-radius:99px;background:#eff6ff;color:#175b9a;font-weight:700}
 .rainpill.low{background:#f1f5f9;color:#64748b}.rainpill.mid{background:#fff7ed;color:#a16207}.rainpill.high{background:#fee2e2;color:#b42318}
 .rainamount{display:inline-flex;align-items:center;gap:5px;font-weight:700}.rainamount.none{color:#94a3b8}.rainamount.light{color:#2563a6}.rainamount.heavy{color:#b42318}
 .legend{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}.legend span{font-size:12px;padding:4px 8px;border-radius:8px;background:#f8fafc;border:1px solid var(--line)}
@@ -1080,6 +1080,24 @@ const modelDefs=[
 // 確定性模式逐時欄位：雨量與溫度／風場分開取值；降雨機率由系集API獨立計算。
 const hourlyVars="temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,weather_code,wind_speed_10m,wind_gusts_10m,wind_direction_10m,cloud_cover,uv_index";
 function wxIcon(code){if(code>=95)return "⛈️";if(code>=80)return "🌦️";if(code>=61)return "🌧️";if(code>=51)return "🌦️";if(code>=45)return "🌫️";if(code===0)return "☀️";if(code<=3)return "⛅";return "🌤️";}
+function rainConditionIcon(code){
+ const n=Number(code);
+ const cloud='<path d="M7 14.5c-3.1 0-5-1.8-5-4.2 0-2.2 1.8-4 4.2-4.1C7.1 2.8 9.7 1 12.8 1c3.3 0 5.9 2 6.6 5.1 2.5.1 4.3 1.7 4.3 4.1 0 2.5-1.9 4.3-4.8 4.3Z" fill="#e8f1f7" stroke="#647f91" stroke-width="1.3" stroke-linejoin="round"/>';
+ const drops=(count,color,width)=>Array.from({length:count},(_,i)=>{const x=count===2?[10,19][i]:count===3?[7,14,21][i]:[5,10,15,20][i];return '<path d="M'+x+' 17l-1.8 4" stroke="'+color+'" stroke-width="'+width+'" stroke-linecap="round"/>';}).join('');
+ let rain='';
+ if([51,53,55].includes(n))rain=drops(3,'#76b9df',1.25);
+ else if([61,66,80].includes(n))rain=drops(2,'#2586c7',1.8);
+ else if([63,67,81].includes(n))rain=drops(3,'#2586c7',1.8);
+ else if([65,82].includes(n))rain=drops(4,'#d32f2f',2);
+ else if(n>=95)rain=drops(4,'#d32f2f',2);
+ else if(n>=56&&n<=57)rain=drops(3,'#2586c7',1.8);
+ else if(n>=61&&n<=67)rain=drops(3,'#2586c7',1.8);
+ else if(n>=80&&n<=82)rain=drops(3,'#2586c7',1.8);
+ if(!rain){return wxIcon(n);}
+ const bolt=n>=95?'<path d="M14 12l-4 6h3l-1 5 5-7h-3l2-4Z" fill="#ffd22e" stroke="#d69a00" stroke-width=".7" stroke-linejoin="round"/>':'';
+ const aria=n>=95?'雷雨圖示，4條紅色雨絲及黃色閃電':[65,82].includes(n)?'大雨圖示，4條紅色雨絲':[63,67,81].includes(n)?'中雨圖示，3條藍色雨絲':[51,53,55].includes(n)?'毛毛雨圖示，細雨絲':'小雨圖示，2條藍色雨絲';
+ return '<svg class="wxemoji rain-svg" viewBox="0 0 28 26" role="img" aria-label="'+aria+'" focusable="false">'+cloud+rain+bolt+'</svg>';
+}
 function wx(code){if(code>=95)return "雷雨";if(code>=80)return "陣雨";if(code>=61)return "降雨";if(code>=51)return "毛毛雨";if(code>=45)return "有霧";if(code===0)return "晴朗";if(code<=3)return "多雲";return "天氣變化";}
 function score(rain,wind,gust,feel){let v=100-(rain||0)*0.55-Math.max(0,(wind||0)-12)*1.2-Math.max(0,(gust||0)-22)*0.8-Math.max(0,Math.abs((feel??24)-24)-7)*2;return Math.max(0,Math.min(100,Math.round(v)));}
 function cls(v){return v>=75?"good":v>=50?"mid":"bad";}
@@ -1295,7 +1313,7 @@ async function loadForecast(p,date){
  const rainTotal=valid.reduce((z,x)=>z+(x.mm||0),0),wet=valid.filter(x=>(x.mm||0)>0.1).sort((a,b)=>(b.mm||0)-(a.mm||0))[0],four=valid.map((x,i)=>({start:x.time,total:valid.slice(i,i+4).reduce((z,y)=>z+(y.mm||0),0)})).filter(x=>valid.findIndex(y=>y.time===x.start)+3<valid.length).sort((a,b)=>b.total-a.total)[0];
  $("rainMetrics").innerHTML=[["06–18時最高降雨機率",fmt(mx("rain"),0)+"%"],["06–18時累積雨量",fmt(rainTotal)+" mm"],["雨量最大小時",wet?wet.time+"｜"+fmt(wet.mm)+" mm":"—"],["最大連續4小時雨量",four?four.start+"起｜"+fmt(four.total)+" mm":"—"],["機率資料來源",rainProbInfo.source]].map(([a,b])=>`<div class="metric"><small>${a}</small><strong style="font-size:18px">${b}</strong></div>`).join("");
  $("rainMethodStatus").textContent=rainProbInfo.detail+`。雨量為五模式逐時中位數；每小時同時呈現五模式範圍，累積雨量為06:00–18:00逐時合計。`;
- $("hourRows").innerHTML=base.map(x=>`<tr><td><b>${x.time}</b></td><td><span class="wxcell"><span class="wxemoji">${wxIcon(x.code)}</span>${wx(x.code)}</span></td><td>${rainProbHTML(x.rain)}</td><td>${amountRangeHTML(x)}</td><td>${fmt(x.temp)}</td><td><span class="feel-temp">${fmt(x.feel)}</span></td><td>${fmt(x.wind)}</td><td>${fmt(x.gust)}</td><td>${x.dir===null||x.dir===undefined?"—":`${dir(x.dir)} ${Math.round(x.dir)}°`}</td><td>${x.rh??"—"}%</td><td>${x.cloud??"—"}%</td><td>${fmt(x.uv)}</td><td class="${cls(score(x.rain,x.wind,x.gust,x.feel))}">${score(x.rain,x.wind,x.gust,x.feel)}/100</td></tr>`).join("");
+ $("hourRows").innerHTML=base.map(x=>`<tr><td><b>${x.time}</b></td><td><span class="wxcell">${rainConditionIcon(x.code)}${wx(x.code)}</span></td><td>${rainProbHTML(x.rain)}</td><td>${amountRangeHTML(x)}</td><td>${fmt(x.temp)}</td><td><span class="feel-temp">${fmt(x.feel)}</span></td><td>${fmt(x.wind)}</td><td>${fmt(x.gust)}</td><td>${x.dir===null||x.dir===undefined?"—":`${dir(x.dir)} ${Math.round(x.dir)}°`}</td><td>${x.rh??"—"}%</td><td>${x.cloud??"—"}%</td><td>${fmt(x.uv)}</td><td class="${cls(score(x.rain,x.wind,x.gust,x.feel))}">${score(x.rain,x.wind,x.gust,x.feel)}/100</td></tr>`).join("");
  const chartTimes=base.map(x=>x.time);
  chart("windChart",[base.map(x=>x.wind),base.map(x=>x.gust)],Math.max(30,mx("gust")||30),["#1769aa","#d97706"],chartTimes," km/h");
  chart("rainChart",[base.map(x=>x.rain)],100,["#15966a"],chartTimes,"%");
