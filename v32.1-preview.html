@@ -187,6 +187,24 @@ footer{color:var(--muted);font-size:12px;padding:18px 0}
   .card:has(>#hourlyForecastTable),.card:has(.hourly-table-wrap){padding:8px;}
 }
 </style>
+<style id="v31-6-mobile-seven-columns">
+@media screen and (max-width:600px){
+ .hourly-table-wrap{width:100%!important;max-width:100%!important;overflow-x:hidden!important;overflow-y:visible!important}
+ #hourlyForecastTable{width:100%!important;min-width:100%!important;max-width:100%!important;table-layout:fixed!important;font-size:10px!important}
+ #hourlyForecastTable th,#hourlyForecastTable td{box-sizing:border-box!important;padding:5px 1px!important;white-space:normal!important;overflow-wrap:anywhere!important;line-height:1.2!important;text-align:center!important;vertical-align:middle!important;min-width:0!important}
+ #hourlyForecastTable th:nth-child(1),#hourlyForecastTable td:nth-child(1){width:9%!important}
+ #hourlyForecastTable th:nth-child(2),#hourlyForecastTable td:nth-child(2){width:14%!important}
+ #hourlyForecastTable th:nth-child(3),#hourlyForecastTable td:nth-child(3){width:13%!important}
+ #hourlyForecastTable th:nth-child(4),#hourlyForecastTable td:nth-child(4){width:14%!important}
+ #hourlyForecastTable th:nth-child(5),#hourlyForecastTable td:nth-child(5){width:12%!important}
+ #hourlyForecastTable th:nth-child(6),#hourlyForecastTable td:nth-child(6){width:14%!important}
+ #hourlyForecastTable th:nth-child(7),#hourlyForecastTable td:nth-child(7){width:24%!important}
+ #hourlyForecastTable th:nth-child(n+8),#hourlyForecastTable td:nth-child(n+8){display:none!important}
+ #hourlyForecastTable .wxcell,#hourlyForecastTable .rainpill,#hourlyForecastTable .rainamount,#hourlyForecastTable .temp-value,#hourlyForecastTable .hourly-feel-icon{display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;gap:1px!important;margin:0 auto!important;font-size:9px!important;white-space:normal!important}
+ #hourlyForecastTable .wxemoji{font-size:17px!important}
+ #hourlyForecastTable .rain-interpretation{display:block!important;min-width:0!important;width:100%!important;padding:3px 2px!important;font-size:9px!important;white-space:normal!important}
+}
+</style>
 </head>
 <body>
 <header><div class="wrap"><h1>⛳ 台灣高爾夫球場天氣預測V32.2｜全台57球場即時觀測</h1><p>台灣球場資料庫・縣市篩選・手動座標・氣溫／體感溫度逐時分析</p></div></header>
@@ -1450,7 +1468,7 @@ async function getRainProbability(lat,lon,date){
  if(!Object.keys(fallback).length)throw Error('Best Match 未回傳所選日期的逐時降雨機率');
  return {rows:fallback,source:'Best Match 系集機率',detail:'系集成員API未取得有效資料，改用Open-Meteo Best Match的系集降雨機率（約30組模擬）'};
 }
-function amountRangeHTML(row){const n=row.mm;if(n===null||n===undefined)return rainAmountHTML(null);const lo=row.spreads?.mmMin,hi=row.spreads?.mmMax;const base=rainAmountHTML(n);return lo===undefined||hi===undefined?base:`<span title="五模式雨量範圍 ${Number(lo).toFixed(1)}–${Number(hi).toFixed(1)} mm">${base}<small style="display:block;color:#64748b;font-size:10px">範圍 ${Number(lo).toFixed(1)}–${Number(hi).toFixed(1)}</small></span>`;}
+function amountRangeHTML(row){const n=row.mm;if(n===null||n===undefined)return rainAmountHTML(null);const lo=row.spreads?.mmMin,hi=row.spreads?.mmMax;const base=rainAmountHTML(n);return lo===undefined||hi===undefined?base:`<span title="五模式雨量${Number(lo).toFixed(1)}–${Number(hi).toFixed(1)} mm">${base}<small style="display:block;color:#64748b;font-size:10px">範圍 ${Number(lo).toFixed(1)}–${Number(hi).toFixed(1)}</small></span>`;}
 function median(values){const a=values.filter(v=>v!==null&&v!==undefined&&Number.isFinite(Number(v))).map(Number).sort((x,y)=>x-y);if(!a.length)return null;const m=Math.floor(a.length/2);return a.length%2?a[m]:(a[m-1]+a[m])/2;}
 function spread(values){const a=values.filter(v=>v!==null&&v!==undefined&&Number.isFinite(Number(v))).map(Number);return a.length>=2?Math.max(...a)-Math.min(...a):null;}
 function circularMean(values){const a=values.filter(v=>v!==null&&v!==undefined&&Number.isFinite(Number(v))).map(Number);if(!a.length)return null;let x=0,y=0;a.forEach(v=>{x+=Math.cos(v*Math.PI/180);y+=Math.sin(v*Math.PI/180)});return (Math.atan2(y,x)*180/Math.PI+360)%360;}
