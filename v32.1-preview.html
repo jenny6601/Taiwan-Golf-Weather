@@ -115,7 +115,52 @@ footer{color:var(--muted);font-size:12px;padding:18px 0}
 @media(max-width:600px){#coursePickerPanel .course-list{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}#coursePickerPanel .course-item{padding:6px}#coursePickerPanel .course-item button{min-height:50px;padding:8px 5px;font-size:14px}}
 
 .provider-panel{margin-top:14px}.provider-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:12px}.provider-card{border:1px solid var(--line);border-radius:11px;padding:12px;background:#fff}.provider-card strong{display:block;font-size:16px}.provider-status{font-size:12px;color:#64748b;margin:6px 0}.provider-links{display:flex;gap:10px;flex-wrap:wrap;font-size:13px}.provider-pill{display:inline-block;border-radius:999px;padding:3px 8px;background:#fff7e6;color:#8a5a00;font-size:11px;font-weight:700}.provider-table-wrap{overflow-x:auto}.provider-table{width:100%;border-collapse:collapse;font-size:13px}.provider-table th,.provider-table td{border-bottom:1px solid var(--line);padding:7px;text-align:right;white-space:nowrap}.provider-table th:first-child,.provider-table td:first-child{text-align:left}.provider-note{background:#f4f8fb;border-radius:9px;padding:10px;font-size:13px;color:#475569;line-height:1.6}@media(max-width:600px){.provider-grid{grid-template-columns:1fr}}
-@media(min-width:601px){#mobileDetailWrap{display:none!important}} @media(max-width:600px){#mobileDetailWrap .tablewrap{overflow-x:auto!important}#mobileDetailWrap table{min-width:760px!important;table-layout:auto!important;font-size:12px!important}#mobileDetailWrap th,#mobileDetailWrap td{white-space:nowrap!important;padding:8px 7px!important}}</style>
+@media(min-width:601px){#mobileDetailWrap{display:none!important}} @media(max-width:600px){#mobileDetailWrap .tablewrap{overflow-x:auto!important}#mobileDetailWrap table{min-width:760px!important;table-layout:auto!important;font-size:12px!important}#mobileDetailWrap th,#mobileDetailWrap td{white-space:nowrap!important;padding:8px 7px!important}}
+/* Mobile: keep the first seven forecast columns visible without horizontal scrolling. */
+@media(max-width:600px){
+ .hourly-table-wrap{overflow-x:hidden!important}
+ .hourly-table-wrap #hourlyForecastTable{width:100%!important;min-width:0!important;table-layout:fixed!important;font-size:10px!important}
+ .hourly-table-wrap #hourlyForecastTable th,
+ .hourly-table-wrap #hourlyForecastTable td{padding:5px 1px!important;white-space:normal!important;text-align:center!important;vertical-align:middle!important;line-height:1.2!important;overflow-wrap:anywhere}
+ .hourly-table-wrap #hourlyForecastTable th:nth-child(n+8),
+ .hourly-table-wrap #hourlyForecastTable td:nth-child(n+8){display:none!important}
+ .hourly-table-wrap #hourlyForecastTable th:nth-child(1),
+ .hourly-table-wrap #hourlyForecastTable td:nth-child(1){width:11%;font-size:10px!important;font-weight:800}
+ .hourly-table-wrap #hourlyForecastTable th:nth-child(2),
+ .hourly-table-wrap #hourlyForecastTable td:nth-child(2){width:17%}
+ .hourly-table-wrap #hourlyForecastTable th:nth-child(3),
+ .hourly-table-wrap #hourlyForecastTable td:nth-child(3){width:13%}
+ .hourly-table-wrap #hourlyForecastTable th:nth-child(4),
+ .hourly-table-wrap #hourlyForecastTable td:nth-child(4){width:15%}
+ .hourly-table-wrap #hourlyForecastTable th:nth-child(5),
+ .hourly-table-wrap #hourlyForecastTable td:nth-child(5){width:12%}
+ .hourly-table-wrap #hourlyForecastTable th:nth-child(6),
+ .hourly-table-wrap #hourlyForecastTable td:nth-child(6){width:14%}
+ .hourly-table-wrap #hourlyForecastTable th:nth-child(7),
+ .hourly-table-wrap #hourlyForecastTable td:nth-child(7){width:18%}
+ .hourly-table-wrap #hourlyForecastTable td:nth-child(2) .wxcell,
+ .hourly-table-wrap #hourlyForecastTable td:nth-child(3) .rainpill,
+ .hourly-table-wrap #hourlyForecastTable td:nth-child(4) .rainamount,
+ .hourly-table-wrap #hourlyForecastTable td:nth-child(5) .temp-value,
+ .hourly-table-wrap #hourlyForecastTable td:nth-child(6) .hourly-feel-icon{
+  display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;gap:2px!important;white-space:normal!important;margin:0 auto!important
+ }
+ .hourly-table-wrap #hourlyForecastTable td:nth-child(2) .wxemoji{width:100%!important;height:26px!important;justify-content:center!important}
+ .hourly-table-wrap #hourlyForecastTable td:nth-child(2) .wxemoji svg{width:27px!important;height:25px!important}
+ .hourly-table-wrap #hourlyForecastTable td:nth-child(3) .rainpill{padding:2px 2px!important;gap:1px!important;font-size:10px!important}
+ .hourly-table-wrap #hourlyForecastTable td:nth-child(3) .rainpill svg{width:24px!important;height:24px!important}
+ .hourly-table-wrap #hourlyForecastTable td:nth-child(4) .rainamount{gap:1px!important;font-size:10px!important}
+ .hourly-table-wrap #hourlyForecastTable td:nth-child(4) .rainamount svg{width:19px!important;height:17px!important;margin:0!important}
+ .hourly-table-wrap #hourlyForecastTable td:nth-child(5) .temp-value{font-size:11px!important}
+ .hourly-table-wrap #hourlyForecastTable td:nth-child(5) svg{width:13px!important;height:18px!important;margin:0!important}
+ .hourly-table-wrap #hourlyForecastTable td:nth-child(6) .hourly-feel-icon{gap:1px!important;font-size:10px!important}
+ .hourly-table-wrap #hourlyForecastTable td:nth-child(6) .hourly-feel-icon svg{width:24px!important;height:22px!important;min-width:24px!important;flex:0 0 22px!important}
+ .hourly-table-wrap #hourlyForecastTable td:nth-child(7) .rain-interpretation{display:block!important;min-width:0!important;width:100%!important;padding:3px 1px!important;font-size:9px!important;line-height:1.2!important;white-space:normal!important;overflow-wrap:anywhere}
+ .hourly-table-wrap #hourlyForecastTable tbody tr{height:68px}
+ #tableNote{font-size:11px;line-height:1.45}
+}
+
+</style>
 <style>@media(max-width:600px){section.mobile-hide-sources{display:block!important}}</style>
 
 <style id="v30-mobile-core-fit">
