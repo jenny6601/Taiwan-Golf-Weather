@@ -1147,13 +1147,20 @@ async function loadLiveObservation(course){
  const state=$("liveObservationState"),summary=$("liveObservationSummary"),metrics=$("liveObservationMetrics"),times=$("liveObservationTimes");
  if(!state||!metrics)return;state.className="pill";state.textContent="讀取中";
  try{
-  const idx=taiwanCourses.findIndex(x=>x.name===course.name);
-  if(idx<0)throw Error("找不到球場代碼");
-  const id=course.name==="礁溪"?"JIAOXI":"TWG"+String(idx+1).padStart(3,"0");
+  const courseName=String(course.name||"").trim().normalize("NFC");
+  const idx=taiwanCourses.findIndex(x=>String(x.name||"").trim().normalize("NFC")===courseName);
+  if(idx<0)throw Error("找不到球場代碼："+courseName);
+  const isJiaoxi=courseName.includes("礁溪")||course.city==="宜蘭縣"||(Number.isFinite(Number(course.lat))&&Math.abs(Number(course.lat)-24.8389)<0.03&&Math.abs(Number(course.lon)-121.7389)<0.03);
+  const id=isJiaoxi?"JIAOXI":"TWG"+String(idx+1).padStart(3,"0");
   const res=await fetch("data/live_observations.json?ts="+Date.now(),{cache:"no-store"});
   if(!res.ok)throw Error("即時觀測快照尚未發布（HTTP "+res.status+"）");
-  const snap=await res.json(),item=snap.courses&&snap.courses[id];
-  if(!item)throw Error("此球場尚無觀測站配對資料");
+  const snap=await res.json();
+  let item=snap.courses&&snap.courses[id];
+  if(!item&&snap.courses){
+   item=Object.values(snap.courses).find(x=>String(x.course_name||"").trim().normalize("NFC")===courseName);
+   if(!item&&isJiaoxi)item=Object.values(snap.courses).find(x=>x.course_id==="JIAOXI"||Math.abs(Number(x.latitude)-24.8389)<0.03&&Math.abs(Number(x.longitude)-121.7389)<0.03);
+  }
+  if(!item)throw Error("找不到球場觀測資料（預期ID："+id+"；快照："+(snap.generated_at||"未知")+"）");
   const w=item.weather,r=item.rainfall,ws=w&&w.station,rs=r&&r.station;
   const temp=w&&w.temperature_c,rh=w&&w.relative_humidity_pct,wind=w&&w.wind_speed_ms,gust=w&&w.wind_gust_ms;
   const rain10=r&&r.precipitation_10m_mm,rain1h=r&&r.precipitation_1h_mm;
