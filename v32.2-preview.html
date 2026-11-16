@@ -36,6 +36,7 @@ details{border:1px solid var(--line);border-radius:10px;padding:10px;margin:8px 
 @media(max-width:700px){.v26-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 footer{color:var(--muted);font-size:12px;padding:18px 0}
 .live-observation-heading{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}.live-observation-datetime{font-size:13px;color:var(--muted);font-weight:500}.live-warning-icon{display:inline-block;margin-right:4px;color:#d97706;font-size:14px;line-height:1;vertical-align:baseline}
+.live-condition-icon{display:inline-flex;align-items:center;justify-content:center;margin-right:5px;font-size:19px;line-height:1;vertical-align:-2px}.live-observation-grid .metric small{display:flex;align-items:center;gap:3px}
 .live-observation-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px;margin-top:12px}
 .live-observation-grid .metric strong{font-size:20px}
 .live-observation-foot{font-size:12px;color:var(--muted);margin-top:10px;line-height:1.6}
@@ -1143,6 +1144,23 @@ function liveWeatherCode(text,rain10){
  if(/霧/.test(t))return 45;if(/晴/.test(t))return 0;if(/雲|陰/.test(t))return 3;
  return Number(rain10)>0?61:3;
 }
+function liveRainIcon(amount,period){
+ const n=Number(amount);
+ if(amount===null||amount===undefined||!Number.isFinite(n))return '<span class="live-condition-icon" aria-label="雨量資料不足">—</span>';
+ if(n<=0)return '<span class="live-condition-icon" role="img" aria-label="無降雨">☁️</span>';
+ const hourlyRate=period==="10m"?n*6:n;
+ if(hourlyRate<2.5)return '<span class="live-condition-icon" role="img" aria-label="小雨">🌦️</span>';
+ if(hourlyRate<7.5)return '<span class="live-condition-icon" role="img" aria-label="中雨">🌧️</span>';
+ if(hourlyRate<50)return '<span class="live-condition-icon" role="img" aria-label="大雨">🌧️</span>';
+ return '<span class="live-condition-icon" role="img" aria-label="豪雨">⛈️</span>';
+}
+function liveFeelIcon(value){
+ const n=Number(value);
+ if(value===null||value===undefined||!Number.isFinite(n))return '<span class="live-condition-icon" aria-label="體感資料不足">—</span>';
+ if(n<=19)return '<span class="live-condition-icon" role="img" aria-label="寒冷，請注意保暖">🧥</span>';
+ if(n<=27)return '<span class="live-condition-icon" role="img" aria-label="舒適">🙂</span>';
+ return '<span class="live-condition-icon" role="img" aria-label="炎熱，請注意防暑">🥵</span>';
+}
 function liveMetric(label,value){return '<div class="metric"><small>'+label+'</small><strong>'+value+'</strong></div>';}
 async function loadLiveObservation(course){
  const state=$("liveObservationState"),summary=$("liveObservationSummary"),metrics=$("liveObservationMetrics"),times=$("liveObservationTimes");
@@ -1170,8 +1188,8 @@ async function loadLiveObservation(course){
   const rainHtml=rain10===null||rain10===undefined?"資料不足":'<span class="live-rain-status">'+liveFmt(rain10,1," mm")+'</span>';
   metrics.innerHTML=[
    liveMetric("目前天氣",'<span class="wxcell"><span class="wxemoji">'+wxIcon(code)+'</span>'+weatherText+'</span>'),
-   liveMetric("氣溫",liveFmt(temp,1," °C")),liveMetric('<span class="live-warning-icon" role="img" aria-label="體感溫度注意">⚠</span>估算體感',liveFmt(feel,1," °C")),liveMetric("濕度",liveFmt(rh,0," %")),
-   liveMetric('<span class="live-warning-icon" role="img" aria-label="降雨注意">⚠</span>近10分鐘雨量',rainHtml),liveMetric('<span class="live-warning-icon" role="img" aria-label="降雨注意">⚠</span>近1小時雨量',liveFmt(rain1h,1," mm")),
+   liveMetric("氣溫",liveFmt(temp,1," °C")),liveMetric(liveFeelIcon(feel)+'估算體感',liveFmt(feel,1," °C")),liveMetric("濕度",liveFmt(rh,0," %")),
+   liveMetric(liveRainIcon(rain10,"10m")+'近10分鐘雨量',rainHtml),liveMetric(liveRainIcon(rain1h,"1h")+'近1小時雨量',liveFmt(rain1h,1," mm")),
    liveMetric("風速",liveFmt(windKm,1," km/h")),liveMetric("陣風",liveFmt(gustKm,1," km/h"))
   ].join("");
   const ages=[ws&&ws.observation_age_minutes,rs&&rs.observation_age_minutes].filter(x=>x!==null&&x!==undefined&&Number.isFinite(Number(x)));
