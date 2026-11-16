@@ -1,37 +1,82 @@
-name: V32.1 CWA Observation Collector
+name: V32.2 Scheduled Live Data Publisher
 
 on:
   workflow_dispatch:
   schedule:
-    - cron: "20 * * * *"
+    # Use the existing scheduled workflow entry point that has already run successfully.
+    - cron: "*/10 * * * *"
 
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
-  group: v32-cwa-observation-collector
+  group: v32-2-live-publisher
   cancel-in-progress: false
 
 jobs:
-  collect:
+  collect-and-publish:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
-      - name: Checkout repository
+      - name: Checkout V32.2 feature branch and collector
         uses: actions/checkout@v4
+        with:
+          ref: feature/v32.2-57-course-live-observations
+          path: source
+          persist-credentials: false
+
+      - name: Checkout main for isolated Pages publication
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          path: publish
+          persist-credentials: true
 
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
           cache: "pip"
+          cache-dependency-path: source/requirements.txt
 
       - name: Install dependencies
-        run: pip install -r requirements.txt
+        run: pip install -r source/requirements.txt
 
-      - name: Collect CWA observations near Jiaoxi
+      - name: Collect observations for all 57 golf courses
         env:
           CWA_API_KEY: ${{ secrets.CWA_API_KEY }}
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
-        run: python -m scripts.collect_observations --source cwa
+        run: |
+          cd source
+          python -m scripts.collect_observations --source cwa
+
+      - name: Verify snapshot and preview
+        run: |
+          test -s source/data/live_observations.json
+          test -s source/v32.2-preview.html
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=json.loads(Path("source/data/live_observations.json").read_text(encoding="utf-8"))
+          assert p.get("course_count")==57, f"Expected 57 courses, got {p.get('course_count')}"
+          assert len(p.get("courses",{}))==57, "Snapshot course mapping is incomplete"
+          assert p.get("generated_at"), "Snapshot generated_at is missing"
+          print("Verified snapshot:", p["course_count"], "courses")
+          print("Generated at:", p["generated_at"])
+          PY
+
+      - name: Publish isolated V32.2 preview and public JSON
+        run: |
+          mkdir -p publish/data
+          cp source/data/live_observations.json publish/data/live_observations.json
+          cp source/v32.2-preview.html publish/v32.2-preview.html
+          git -C publish config user.name "github-actions[bot]"
+          git -C publish config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git -C publish add data/live_observations.json v32.2-preview.html
+          if git -C publish diff --cached --quiet; then
+            echo "No public snapshot or preview changes."
+          else
+            git -C publish commit -m "Publish V32.2 live observations and isolated preview"
+            git -C publish push origin HEAD:main
+          fi
