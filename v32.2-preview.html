@@ -1165,7 +1165,7 @@ function liveRainIcon(amount,period){
 function liveFeelIcon(value){
  const n=Number(value);
  if(value===null||value===undefined||!Number.isFinite(n))return '<span class="live-condition-icon" aria-label="體感資料不足">—</span>';
- if(n<=19)return '<span class="live-condition-icon" role="img" aria-label="寒冷，請注意保暖">🧥</span>';
+ if(n<=19)return '<span class="live-condition-icon" role="img" aria-label="寒冷，請注意保暖"><svg viewBox="0 0 32 32" width="23" height="23" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 7 7 3.5 13l4 2 2-3v15h13V12l2 3 4-2L25 7l-4-2-5 3-5-3Z"/><path d="m11 5 5 4 5-4M16 9v18M13.5 13h.1M13.5 18h.1M13.5 23h.1M10 27h12"/></g></svg></span>';
  if(n<=27)return '<span class="live-condition-icon" role="img" aria-label="舒適">🙂</span>';
  return '<span class="live-condition-icon" role="img" aria-label="炎熱，請注意防暑">🥵</span>';
 }
