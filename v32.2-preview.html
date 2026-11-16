@@ -35,6 +35,8 @@ details{border:1px solid var(--line);border-radius:10px;padding:10px;margin:8px 
 .v26-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px}.v26-stat{border:1px solid var(--line);border-radius:10px;padding:11px;background:#f8fafc}.v26-stat b{display:block;font-size:20px}
 @media(max-width:700px){.v26-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 footer{color:var(--muted);font-size:12px;padding:18px 0}
+.live-observation-heading{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}.live-observation-datetime{font-size:13px;color:var(--muted);font-weight:500}.live-warning-icon{display:inline-block;margin-right:4px;color:#d97706;font-size:14px;line-height:1;vertical-align:baseline}
+.live-condition-icon{display:inline-flex;align-items:center;justify-content:center;margin-right:5px;font-size:19px;line-height:1;vertical-align:-2px}.live-observation-grid .metric small{display:flex;align-items:center;gap:3px}
 .live-observation-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px;margin-top:12px}
 .live-observation-grid .metric strong{font-size:20px}
 .live-observation-foot{font-size:12px;color:var(--muted);margin-top:10px;line-height:1.6}
@@ -224,7 +226,7 @@ footer{color:var(--muted);font-size:12px;padding:18px 0}
 <div class="quick-course-wrap"><div class="quick-course-title">⭐ 常用球場（快速選擇）</div><div class="quick-course-buttons" id="quickCourseButtons"><button data-quick-course="東方" type="button">東方</button><button data-quick-course="礁溪" type="button">礁溪</button><button data-quick-course="美麗華" type="button">美麗華</button><button data-quick-course="林口" type="button">林口</button><button data-quick-course="大溪" type="button">大溪</button></div></div>
 </section>
 <section class="card live-observation-card" id="liveObservationPanel">
- <div class="row"><h3 style="margin:0" id="liveObservationTitle">即時天氣觀測</h3><span class="pill" id="liveObservationState">尚未載入</span></div>
+ <div class="row"><div class="live-observation-heading"><h3 style="margin:0">即時天氣觀測</h3><time id="liveObservationDateTime" class="live-observation-datetime">等待資料</time></div><span class="pill" id="liveObservationState">尚未載入</span></div>
  <p class="muted" id="liveObservationSummary">選擇球場後載入附近中央氣象署觀測站資料。資料每10分鐘更新。</p>
  <div class="live-observation-grid" id="liveObservationMetrics">
   <div class="metric"><small>目前天氣</small><strong>—</strong></div><div class="metric"><small>氣溫</small><strong>—</strong></div>
@@ -1138,9 +1140,34 @@ function liveFeelEstimate(temp,rh,windMs){
 }
 function liveWeatherCode(text,rain10){
  const t=String(text||"");
- if(/雷|閃電/.test(t))return 95;if(/雨|陣雨|降水/.test(t))return 61;
+ if(/雷|閃電/.test(t))return 95;
+ if(/豪雨|大雨|強降雨/.test(t))return 65;
+ if(/中雨/.test(t))return 63;
+ if(/小雨|毛毛雨|細雨/.test(t))return 61;
+ if(/雨|陣雨|降水/.test(t)){
+  const rate=Number(rain10)*6;
+  return rate>=7.5?65:rate>=2.5?63:61;
+ }
  if(/霧/.test(t))return 45;if(/晴/.test(t))return 0;if(/雲|陰/.test(t))return 3;
- return Number(rain10)>0?61:3;
+ const rate=Number(rain10)*6;
+ return Number.isFinite(rate)&&rate>0?(rate>=7.5?65:rate>=2.5?63:61):3;
+}
+function liveRainIcon(amount,period){
+ const n=Number(amount);
+ if(amount===null||amount===undefined||!Number.isFinite(n))return '<span class="live-condition-icon" aria-label="雨量資料不足">—</span>';
+ if(n<=0)return '<span class="live-condition-icon" role="img" aria-label="無降雨">☁️</span>';
+ const hourlyRate=period==="10m"?n*6:n;
+ if(hourlyRate<2.5)return '<span class="live-condition-icon" role="img" aria-label="小雨">🌦️</span>';
+ if(hourlyRate<7.5)return '<span class="live-condition-icon" role="img" aria-label="中雨">🌧️</span>';
+ if(hourlyRate<50)return '<span class="live-condition-icon" role="img" aria-label="大雨">🌧️</span>';
+ return '<span class="live-condition-icon" role="img" aria-label="豪雨">⛈️</span>';
+}
+function liveFeelIcon(value){
+ const n=Number(value);
+ if(value===null||value===undefined||!Number.isFinite(n))return '<span class="live-condition-icon" aria-label="體感資料不足">—</span>';
+ if(n<=19)return '<span class="live-condition-icon" role="img" aria-label="寒冷，請注意保暖"><svg viewBox="0 0 32 32" width="23" height="23" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 7 7 3.5 13l4 2 2-3v15h13V12l2 3 4-2L25 7l-4-2-5 3-5-3Z"/><path d="m11 5 5 4 5-4M16 9v18M13.5 13h.1M13.5 18h.1M13.5 23h.1M10 27h12"/></g></svg></span>';
+ if(n<=27)return '<span class="live-condition-icon" role="img" aria-label="舒適">🙂</span>';
+ return '<span class="live-condition-icon" role="img" aria-label="炎熱，請注意防暑">🥵</span>';
 }
 function liveMetric(label,value){return '<div class="metric"><small>'+label+'</small><strong>'+value+'</strong></div>';}
 async function loadLiveObservation(course){
@@ -1169,8 +1196,8 @@ async function loadLiveObservation(course){
   const rainHtml=rain10===null||rain10===undefined?"資料不足":'<span class="live-rain-status">'+liveFmt(rain10,1," mm")+'</span>';
   metrics.innerHTML=[
    liveMetric("目前天氣",'<span class="wxcell"><span class="wxemoji">'+wxIcon(code)+'</span>'+weatherText+'</span>'),
-   liveMetric("氣溫",liveFmt(temp,1," °C")),liveMetric("估算體感",liveFmt(feel,1," °C")),liveMetric("濕度",liveFmt(rh,0," %")),
-   liveMetric("近10分鐘雨量",rainHtml),liveMetric("近1小時雨量",liveFmt(rain1h,1," mm")),
+   liveMetric("氣溫",liveFmt(temp,1," °C")),liveMetric(liveFeelIcon(feel)+'估算體感',liveFmt(feel,1," °C")),liveMetric("濕度",liveFmt(rh,0," %")),
+   liveMetric(liveRainIcon(rain10,"10m")+'近10分鐘雨量',rainHtml),liveMetric(liveRainIcon(rain1h,"1h")+'近1小時雨量',liveFmt(rain1h,1," mm")),
    liveMetric("風速",liveFmt(windKm,1," km/h")),liveMetric("陣風",liveFmt(gustKm,1," km/h"))
   ].join("");
   const ages=[ws&&ws.observation_age_minutes,rs&&rs.observation_age_minutes].filter(x=>x!==null&&x!==undefined&&Number.isFinite(Number(x)));
@@ -1181,12 +1208,13 @@ async function loadLiveObservation(course){
   const fmtTime=x=>x&&x.observed_at?new Date(x.observed_at).toLocaleTimeString("zh-TW",{timeZone:"Asia/Taipei",hour12:false}):"無資料";
   const fmtDateTime=x=>x?new Date(x).toLocaleString("zh-TW",{timeZone:"Asia/Taipei",year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",second:"2-digit",hour12:false}):"時間未知";
   const snapshotDateTime=fmtDateTime(snap.generated_at);
-  const title=$("liveObservationTitle");
-  if(title)title.textContent="即時天氣觀測｜"+snapshotDateTime;
+  const dateTimeEl=$("liveObservationDateTime");
+  if(dateTimeEl){dateTimeEl.textContent=snapshotDateTime;dateTimeEl.dateTime=snap.generated_at||"";}
   summary.textContent="氣象站："+(ws?ws.name:"未配對")+"（"+(ws?ws.distance_km:"—")+" km）｜雨量站："+(rs?rs.name:"未配對")+"（"+(rs?rs.distance_km:"—")+" km）";
   times.textContent="氣象觀測時間："+fmtTime(ws)+"｜雨量觀測時間："+fmtTime(rs)+"｜快照更新時間："+fmtTime({observed_at:snap.generated_at})+"。體感為依氣溫、濕度及風速估算，非氣象站直接量測。";
  }catch(err){
   state.className="pill live-state-missing";state.textContent="尚無即時資料";
+  const dateTimeEl=$("liveObservationDateTime");if(dateTimeEl)dateTimeEl.textContent="日期時間暫缺";
   summary.textContent=course.name+"｜"+err.message+"。逐時預報仍可獨立使用。";
   metrics.innerHTML=["目前天氣","氣溫","估算體感","濕度","近10分鐘雨量","近1小時雨量","風速","陣風"].map(x=>liveMetric(x,"—")).join("");
   times.textContent="不以預報值代替實際觀測值，也不將缺漏資料視為零。";
@@ -1238,17 +1266,24 @@ const modelDefs=[
 // 確定性模式逐時欄位：雨量與溫度／風場分開取值；降雨機率由系集API獨立計算。
 const hourlyVars="temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,weather_code,wind_speed_10m,wind_gusts_10m,wind_direction_10m,cloud_cover,uv_index";
 function wxIcon(code){
- const n=Number(code),svg=(body,label)=>'<svg class="wx-icon" viewBox="0 0 48 42" role="img" aria-label="'+label+'" xmlns="http://www.w3.org/2000/svg">'+body+'</svg>';
+ const n=Number(code),svg=(body,label)=>'<svg class="wx-icon" viewBox="0 0 48 46" role="img" aria-label="'+label+'" xmlns="http://www.w3.org/2000/svg">'+body+'</svg>';
+ const defs='<defs><linearGradient id="wxCloudFill" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#fff"/><stop offset="1" stop-color="#CBD5E1"/></linearGradient></defs>';
+ const cloud=(stroke="#64748B",width=1.8,fill="url(#wxCloudFill)")=>'<path d="M8 27h30a8 8 0 0 0 0-16 12 12 0 0 0-23-2A9 9 0 0 0 8 27Z" fill="'+fill+'" stroke="'+stroke+'" stroke-width="'+width+'" stroke-linejoin="round"/>';
+ const rain=(count,color="#0284C7")=>{
+  const paths=count===1?'<path d="M23 32c-1.2 2.4-3.2 4.4-3.2 6.4a3.2 3.2 0 0 0 6.4 0c0-2-2-4-3.2-6.4Z" fill="'+color+'"/>':
+   count===2?'<g stroke="'+color+'" stroke-width="2.8" stroke-linecap="round"><path d="m17 32-2 6m17-6-2 6"/></g>':
+   '<g stroke="'+color+'" stroke-width="2.8" stroke-linecap="round"><path d="m12 32-2 7m14-7-2 7m14-7-2 7"/></g>';
+  return paths;
+ };
  const sun='<circle cx="16" cy="13" r="7" fill="#FDBA32" stroke="#B7791F" stroke-width="1.5"/><g stroke="#D97706" stroke-width="2" stroke-linecap="round"><path d="M16 1v4M16 21v4M4 13H1m30 0h-4M7 4l3 3m12 12 3 3m0-18-3 3M10 19l-3 3"/></g>';
- const cloud='<path d="M10 30h27a8 8 0 0 0 0-16 12 12 0 0 0-23-2A9 9 0 0 0 10 30Z" fill="url(#cloudFill)" stroke="#64748B" stroke-width="1.6" stroke-linejoin="round"/>';
- const defs='<defs><linearGradient id="cloudFill" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#fff"/><stop offset="1" stop-color="#CBD5E1"/></linearGradient><linearGradient id="rainFill" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#38BDF8"/><stop offset="1" stop-color="#0369A1"/></linearGradient></defs>';
- if(n>=95)return svg(defs+'<path d="M9 25h27a8 8 0 0 0 0-16 12 12 0 0 0-23-2 9 9 0 0 0-4 18Z" fill="#475569" stroke="#1E293B" stroke-width="1.8"/><path d="m25 19-8 12h7l-2 9 12-15h-8l3-6Z" fill="#FACC15" stroke="#A16207" stroke-width="1"/><path d="m12 29-2 5m11-5-2 5" stroke="#0EA5E9" stroke-width="2.4" stroke-linecap="round"/>','雷雨');
- if(n===65||n===67||n===82||n===63||n===81)return svg(defs+'<path d="M9 24h28a8 8 0 0 0 0-16 12 12 0 0 0-23-2 9 9 0 0 0-5 18Z" fill="#475569" stroke="#1E293B" stroke-width="1.8"/><g stroke="url(#rainFill)" stroke-width="3" stroke-linecap="round"><path d="m13 29-3 7m12-7-3 7m12-7-3 7"/></g>','大雨');
- if((n>=51&&n<=57)||n>=61||n>=80)return svg(defs+cloud+'<g stroke="#0284C7" stroke-width="2.4" stroke-linecap="round"><path d="m15 32-2 5m12-5-2 5m11-5-2 5"/></g>','降雨');
- if(n>=45)return svg('<path d="M7 13h34M4 21h38M8 29h32M13 37h22" stroke="#64748B" stroke-width="2.8" stroke-linecap="round"/><path d="M10 8h28" stroke="#CBD5E1" stroke-width="2" stroke-linecap="round"/>','有霧');
- if(n===0)return svg(defs+sun,'晴朗');
- if(n<=2)return svg(defs+sun+cloud,'晴時多雲');
- return svg(defs+cloud,'多雲');
+ if(n>=95)return svg(defs+cloud("#DC2626",2.8,"#64748B")+'<path d="m25 20-9 13h8l-2 10 13-17h-9l3-6Z" fill="#FACC15" stroke="#CA8A04" stroke-width="1.1"/>'+rain(3,"#0EA5E9"),"豪雨或雷雨");
+ if(n===65||n===67||n===82)return svg(defs+cloud("#DC2626",2.8)+'<g>'+rain(3,"#0284C7")+'</g>',"大雨：紅色雲邊及三條雨絲");
+ if(n===63||n===81)return svg(defs+cloud()+'<g>'+rain(2,"#0284C7")+'</g>',"中雨：兩條雨絲");
+ if((n>=51&&n<=57)||n===61||n===80)return svg(defs+cloud()+'<g>'+rain(1,"#0284C7")+'</g>',"小雨：一滴雨滴");
+ if(n>=45)return svg('<path d="M7 13h34M4 21h38M8 29h32M13 37h22" stroke="#64748B" stroke-width="2.8" stroke-linecap="round"/><path d="M10 8h28" stroke="#CBD5E1" stroke-width="2" stroke-linecap="round"/>',"有霧");
+ if(n===0)return svg(defs+sun,"晴朗");
+ if(n<=2)return svg(defs+sun+cloud(),"晴時多雲");
+ return svg(defs+cloud(),"多雲");
 }
 function wx(code){if(code>=95)return "雷雨";if(code>=80)return "陣雨";if(code>=61)return "降雨";if(code>=51)return "毛毛雨";if(code>=45)return "有霧";if(code===0)return "晴朗";if(code<=3)return "多雲";return "天氣變化";}
 function score(rain,wind,gust,feel){let v=100-(rain||0)*0.55-Math.max(0,(wind||0)-12)*1.2-Math.max(0,(gust||0)-22)*0.8-Math.max(0,Math.abs((feel??24)-24)-7)*2;return Math.max(0,Math.min(100,Math.round(v)));}
