@@ -1211,7 +1211,8 @@ async function loadLiveObservation(course){
   const snapshotAge=Math.max(0,(Date.now()-new Date(snap.generated_at).getTime())/60000);
   const maxAge=ages.length?Math.max.apply(null,ages)+snapshotAge:null,stale=maxAge===null||maxAge>60,warning=maxAge!==null&&maxAge>30&&maxAge<=60;
   state.className="pill "+(stale||warning?"live-state-stale":"live-state-fresh");
-  state.textContent=stale?"資料延遲／不足":warning?"觀測資料稍舊":"觀測資料正常";
+  const ageLabel=maxAge===null?"觀測時間無法確認":"最舊觀測約"+Math.round(maxAge)+"分鐘前";
+  state.textContent=stale?"資料已過期／不足（"+ageLabel+"）":warning?"觀測資料稍舊（"+ageLabel+"）":"觀測資料正常（"+ageLabel+"）";
   const fmtTime=x=>x&&x.observed_at?new Date(x.observed_at).toLocaleTimeString("zh-TW",{timeZone:"Asia/Taipei",hour12:false}):"無資料";
   const fmtDateTime=x=>x?new Date(x).toLocaleString("zh-TW",{timeZone:"Asia/Taipei",year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",second:"2-digit",hour12:false}):"時間未知";
   const snapshotDateTime=fmtDateTime(snap.generated_at);
