@@ -1155,12 +1155,19 @@ function liveWeatherCode(text,rain10){
 function liveRainIcon(amount,period){
  const n=Number(amount);
  if(amount===null||amount===undefined||!Number.isFinite(n))return '<span class="live-condition-icon" aria-label="雨量資料不足">—</span>';
- if(n<=0)return '<span class="live-condition-icon" role="img" aria-label="無降雨">☁️</span>';
- const hourlyRate=period==="10m"?n*6:n;
- if(hourlyRate<2.5)return '<span class="live-condition-icon" role="img" aria-label="小雨">🌦️</span>';
- if(hourlyRate<7.5)return '<span class="live-condition-icon" role="img" aria-label="中雨">🌧️</span>';
- if(hourlyRate<50)return '<span class="live-condition-icon" role="img" aria-label="大雨">🌧️</span>';
- return '<span class="live-condition-icon" role="img" aria-label="豪雨">⛈️</span>';
+ if(n<=0)return '<span class="live-condition-icon" role="img" aria-label="無降雨"><svg viewBox="0 0 48 42" width="30" height="27" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M13 27h23a9 9 0 0 0 0-18 13 13 0 0 0-24-1A9 9 0 0 0 13 27Z" fill="#cbd5e1" stroke="#64748b" stroke-width="2.2" stroke-linejoin="round"/></svg></span>';
+ const rate=period==="10m"?n*6:n;
+ let level=rate<2.5?1:rate<7.5?2:rate<50?3:4;
+ const cloudStroke=level>=3?"#ef2929":"#647b96";
+ const drops=level===1
+  ?'<path d="M24 30c-1.8 2.7-3.4 4.6-3.4 6.2a3.4 3.4 0 0 0 6.8 0c0-1.6-1.6-3.5-3.4-6.2Z" fill="#078bd0"/>'
+  :level===2
+   ?'<path d="m17 31-2 6M31 31l-2 6" stroke="#078bd0" stroke-width="3.2" stroke-linecap="round"/>'
+   :'<path d="m14 31-2 7M24 31l-2 7M34 31l-2 7" stroke="#078bd0" stroke-width="3.2" stroke-linecap="round"/>';
+ const bolt=level===4?'<path d="m29 26-5 8h5l-2 7 9-11h-6l3-4Z" fill="#ffd21f" stroke="#e0a800" stroke-width="1" stroke-linejoin="round"/>':'';
+ const label=["","小雨","中雨","大雨","豪雨／雷雨"][level];
+ const svg='<svg viewBox="0 0 48 44" width="34" height="31" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M11 27h26a10 10 0 0 0 0-20 14 14 0 0 0-26-1A10 10 0 0 0 11 27Z" fill="#cbd5e1" stroke="'+cloudStroke+'" stroke-width="2.8" stroke-linejoin="round"/>'+drops+bolt+'</svg>';
+ return '<span class="live-condition-icon" role="img" aria-label="'+label+'">'+svg+'</span>';
 }
 function liveFeelIcon(value){
  const n=Number(value);
