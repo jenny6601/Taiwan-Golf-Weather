@@ -35,6 +35,7 @@ details{border:1px solid var(--line);border-radius:10px;padding:10px;margin:8px 
 .v26-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px}.v26-stat{border:1px solid var(--line);border-radius:10px;padding:11px;background:#f8fafc}.v26-stat b{display:block;font-size:20px}
 @media(max-width:700px){.v26-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 footer{color:var(--muted);font-size:12px;padding:18px 0}
+.live-observation-heading{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}.live-observation-datetime{font-size:13px;color:var(--muted);font-weight:500}.live-warning-icon{display:inline-block;margin-right:4px;color:#d97706;font-size:14px;line-height:1;vertical-align:baseline}
 .live-observation-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px;margin-top:12px}
 .live-observation-grid .metric strong{font-size:20px}
 .live-observation-foot{font-size:12px;color:var(--muted);margin-top:10px;line-height:1.6}
@@ -224,7 +225,7 @@ footer{color:var(--muted);font-size:12px;padding:18px 0}
 <div class="quick-course-wrap"><div class="quick-course-title">⭐ 常用球場（快速選擇）</div><div class="quick-course-buttons" id="quickCourseButtons"><button data-quick-course="東方" type="button">東方</button><button data-quick-course="礁溪" type="button">礁溪</button><button data-quick-course="美麗華" type="button">美麗華</button><button data-quick-course="林口" type="button">林口</button><button data-quick-course="大溪" type="button">大溪</button></div></div>
 </section>
 <section class="card live-observation-card" id="liveObservationPanel">
- <div class="row"><h3 style="margin:0" id="liveObservationTitle">即時天氣觀測</h3><span class="pill" id="liveObservationState">尚未載入</span></div>
+ <div class="row"><div class="live-observation-heading"><h3 style="margin:0">即時天氣觀測</h3><time id="liveObservationDateTime" class="live-observation-datetime">等待資料</time></div><span class="pill" id="liveObservationState">尚未載入</span></div>
  <p class="muted" id="liveObservationSummary">選擇球場後載入附近中央氣象署觀測站資料。資料每10分鐘更新。</p>
  <div class="live-observation-grid" id="liveObservationMetrics">
   <div class="metric"><small>目前天氣</small><strong>—</strong></div><div class="metric"><small>氣溫</small><strong>—</strong></div>
@@ -1169,8 +1170,8 @@ async function loadLiveObservation(course){
   const rainHtml=rain10===null||rain10===undefined?"資料不足":'<span class="live-rain-status">'+liveFmt(rain10,1," mm")+'</span>';
   metrics.innerHTML=[
    liveMetric("目前天氣",'<span class="wxcell"><span class="wxemoji">'+wxIcon(code)+'</span>'+weatherText+'</span>'),
-   liveMetric("氣溫",liveFmt(temp,1," °C")),liveMetric("估算體感",liveFmt(feel,1," °C")),liveMetric("濕度",liveFmt(rh,0," %")),
-   liveMetric("近10分鐘雨量",rainHtml),liveMetric("近1小時雨量",liveFmt(rain1h,1," mm")),
+   liveMetric("氣溫",liveFmt(temp,1," °C")),liveMetric('<span class="live-warning-icon" role="img" aria-label="體感溫度注意">⚠</span>估算體感',liveFmt(feel,1," °C")),liveMetric("濕度",liveFmt(rh,0," %")),
+   liveMetric('<span class="live-warning-icon" role="img" aria-label="降雨注意">⚠</span>近10分鐘雨量',rainHtml),liveMetric('<span class="live-warning-icon" role="img" aria-label="降雨注意">⚠</span>近1小時雨量',liveFmt(rain1h,1," mm")),
    liveMetric("風速",liveFmt(windKm,1," km/h")),liveMetric("陣風",liveFmt(gustKm,1," km/h"))
   ].join("");
   const ages=[ws&&ws.observation_age_minutes,rs&&rs.observation_age_minutes].filter(x=>x!==null&&x!==undefined&&Number.isFinite(Number(x)));
@@ -1181,12 +1182,13 @@ async function loadLiveObservation(course){
   const fmtTime=x=>x&&x.observed_at?new Date(x.observed_at).toLocaleTimeString("zh-TW",{timeZone:"Asia/Taipei",hour12:false}):"無資料";
   const fmtDateTime=x=>x?new Date(x).toLocaleString("zh-TW",{timeZone:"Asia/Taipei",year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",second:"2-digit",hour12:false}):"時間未知";
   const snapshotDateTime=fmtDateTime(snap.generated_at);
-  const title=$("liveObservationTitle");
-  if(title)title.textContent="即時天氣觀測｜"+snapshotDateTime;
+  const dateTimeEl=$("liveObservationDateTime");
+  if(dateTimeEl){dateTimeEl.textContent=snapshotDateTime;dateTimeEl.dateTime=snap.generated_at||"";}
   summary.textContent="氣象站："+(ws?ws.name:"未配對")+"（"+(ws?ws.distance_km:"—")+" km）｜雨量站："+(rs?rs.name:"未配對")+"（"+(rs?rs.distance_km:"—")+" km）";
   times.textContent="氣象觀測時間："+fmtTime(ws)+"｜雨量觀測時間："+fmtTime(rs)+"｜快照更新時間："+fmtTime({observed_at:snap.generated_at})+"。體感為依氣溫、濕度及風速估算，非氣象站直接量測。";
  }catch(err){
   state.className="pill live-state-missing";state.textContent="尚無即時資料";
+  const dateTimeEl=$("liveObservationDateTime");if(dateTimeEl)dateTimeEl.textContent="日期時間暫缺";
   summary.textContent=course.name+"｜"+err.message+"。逐時預報仍可獨立使用。";
   metrics.innerHTML=["目前天氣","氣溫","估算體感","濕度","近10分鐘雨量","近1小時雨量","風速","陣風"].map(x=>liveMetric(x,"—")).join("");
   times.textContent="不以預報值代替實際觀測值，也不將缺漏資料視為零。";
