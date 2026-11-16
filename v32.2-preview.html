@@ -1149,7 +1149,7 @@ async function loadLiveObservation(course){
  try{
   const idx=taiwanCourses.findIndex(x=>x.name===course.name);
   if(idx<0)throw Error("找不到球場代碼");
-  const id="TWG"+String(idx+1).padStart(3,"0");
+  const id=course.name==="礁溪"?"JIAOXI":"TWG"+String(idx+1).padStart(3,"0");
   const res=await fetch("data/live_observations.json?ts="+Date.now(),{cache:"no-store"});
   if(!res.ok)throw Error("即時觀測快照尚未發布（HTTP "+res.status+"）");
   const snap=await res.json(),item=snap.courses&&snap.courses[id];
