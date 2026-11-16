@@ -224,7 +224,7 @@ footer{color:var(--muted);font-size:12px;padding:18px 0}
 <div class="quick-course-wrap"><div class="quick-course-title">⭐ 常用球場（快速選擇）</div><div class="quick-course-buttons" id="quickCourseButtons"><button data-quick-course="東方" type="button">東方</button><button data-quick-course="礁溪" type="button">礁溪</button><button data-quick-course="美麗華" type="button">美麗華</button><button data-quick-course="林口" type="button">林口</button><button data-quick-course="大溪" type="button">大溪</button></div></div>
 </section>
 <section class="card live-observation-card" id="liveObservationPanel">
- <div class="row"><h3 style="margin:0">即時天氣觀測</h3><span class="pill" id="liveObservationState">尚未載入</span></div>
+ <div class="row"><h3 style="margin:0" id="liveObservationTitle">即時天氣觀測</h3><span class="pill" id="liveObservationState">尚未載入</span></div>
  <p class="muted" id="liveObservationSummary">選擇球場後載入附近中央氣象署觀測站資料。資料每10分鐘更新。</p>
  <div class="live-observation-grid" id="liveObservationMetrics">
   <div class="metric"><small>目前天氣</small><strong>—</strong></div><div class="metric"><small>氣溫</small><strong>—</strong></div>
@@ -1178,9 +1178,13 @@ async function loadLiveObservation(course){
   const maxAge=ages.length?Math.max.apply(null,ages)+snapshotAge:null,stale=maxAge===null||maxAge>60,warning=maxAge!==null&&maxAge>30&&maxAge<=60;
   state.className="pill "+(stale||warning?"live-state-stale":"live-state-fresh");
   state.textContent=stale?"資料延遲／不足":warning?"觀測資料稍舊":"觀測資料正常";
-  const tm=x=>x&&x.observed_at?new Date(x.observed_at).toLocaleString("zh-TW",{timeZone:"Asia/Taipei",hour12:false}):"無資料";
+  const fmtTime=x=>x&&x.observed_at?new Date(x.observed_at).toLocaleTimeString("zh-TW",{timeZone:"Asia/Taipei",hour12:false}):"無資料";
+  const fmtDateTime=x=>x?new Date(x).toLocaleString("zh-TW",{timeZone:"Asia/Taipei",year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",second:"2-digit",hour12:false}):"時間未知";
+  const snapshotDateTime=fmtDateTime(snap.generated_at);
+  const title=$("liveObservationTitle");
+  if(title)title.textContent="即時天氣觀測｜"+snapshotDateTime;
   summary.textContent="氣象站："+(ws?ws.name:"未配對")+"（"+(ws?ws.distance_km:"—")+" km）｜雨量站："+(rs?rs.name:"未配對")+"（"+(rs?rs.distance_km:"—")+" km）";
-  times.textContent="氣象觀測時間："+tm(ws)+"｜雨量觀測時間："+tm(rs)+"｜快照更新時間："+tm({observed_at:snap.generated_at})+"。體感為依氣溫、濕度及風速估算，非氣象站直接量測。";
+  times.textContent="氣象觀測時間："+fmtTime(ws)+"｜雨量觀測時間："+fmtTime(rs)+"｜快照更新時間："+fmtTime({observed_at:snap.generated_at})+"。體感為依氣溫、濕度及風速估算，非氣象站直接量測。";
  }catch(err){
   state.className="pill live-state-missing";state.textContent="尚無即時資料";
   summary.textContent=course.name+"｜"+err.message+"。逐時預報仍可獨立使用。";
