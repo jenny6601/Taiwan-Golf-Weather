@@ -2,9 +2,6 @@ name: V32.2 Nationwide Live Data Publisher
 
 on:
   workflow_dispatch:
-  schedule:
-    # Avoid the busy top-of-hour window; run every 10 minutes at an offset.
-    - cron: "3,13,23,33,43,53 * * * *"
 
 permissions:
   contents: write
