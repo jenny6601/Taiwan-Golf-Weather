@@ -45,14 +45,24 @@ def courses_from_html():
 
 
 def fetch_model(course, label, model):
-    params = {
+    base_params = {
         "latitude": course["lat"], "longitude": course["lon"],
-        "hourly": HOURLY, "models": model, "timezone": "Asia/Taipei",
+        "models": model, "timezone": "Asia/Taipei",
         "forecast_days": 16, "wind_speed_unit": "kmh",
     }
+    # Some deterministic model endpoints do not expose every optional field.
+    # Retry progressively smaller hourly-variable sets just like the browser client.
+    hourly_options = [
+        HOURLY,
+        HOURLY.replace(",uv_index", ""),
+        "temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,weather_code,wind_speed_10m,wind_gusts_10m,wind_direction_10m,cloud_cover",
+        "temperature_2m,precipitation,weather_code,wind_speed_10m,wind_gusts_10m,wind_direction_10m",
+    ]
     last = None
-    for attempt in range(3):
+    for hourly_fields in hourly_options:
+      for attempt in range(2):
         try:
+            params = {**base_params, "hourly": hourly_fields}
             response = SESSION.get("https://api.open-meteo.com/v1/forecast",
                                    params=params, timeout=35)
             response.raise_for_status()
@@ -86,8 +96,8 @@ def fetch_model(course, label, model):
             return label, rows_by_date
         except Exception as exc:
             last = exc
-            if attempt < 2:
-                time.sleep(1.5 * (attempt + 1))
+            if attempt == 0:
+                time.sleep(1)
     raise RuntimeError(f"{label}: {last}")
 
 
