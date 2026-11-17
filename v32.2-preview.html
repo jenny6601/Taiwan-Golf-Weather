@@ -1549,7 +1549,7 @@ function amountRangeHTML(row){const n=row.mm;if(n===null||n===undefined)return r
 function median(values){const a=values.filter(v=>v!==null&&v!==undefined&&Number.isFinite(Number(v))).map(Number).sort((x,y)=>x-y);if(!a.length)return null;const m=Math.floor(a.length/2);return a.length%2?a[m]:(a[m-1]+a[m])/2;}
 function spread(values){const a=values.filter(v=>v!==null&&v!==undefined&&Number.isFinite(Number(v))).map(Number);return a.length>=2?Math.max(...a)-Math.min(...a):null;}
 function circularMean(values){const a=values.filter(v=>v!==null&&v!==undefined&&Number.isFinite(Number(v))).map(Number);if(!a.length)return null;let x=0,y=0;a.forEach(v=>{x+=Math.cos(v*Math.PI/180);y+=Math.sin(v*Math.PI/180)});return (Math.atan2(y,x)*180/Math.PI+360)%360;}
-function consensusRows(modelRows){const names=Object.keys(modelRows),times=(modelRows[names[0]]||[]).map(x=>x.time);return times.map(time=>{const rs=names.map(n=>modelRows[n].find(x=>x.time===time)).filter(Boolean),get=k=>median(rs.map(x=>x[k])),codes=rs.map(x=>x.code).filter(x=>x!==null);let code=null;if(codes.length){const counts={};codes.forEach(v=>counts[v]=(counts[v]||0)+1);code=Number(Object.keys(counts).sort((a,b)=>counts[b]-counts[a])[0]);}const amounts=rs.map(x=>x.mm).filter(v=>v!==null&&v!==undefined&&Number.isFinite(Number(v))).map(Number);return {time,available:rs.length>0,temp:get('temp'),feel:get('feel'),rain:null,mm:get('mm'),code,wind:get('wind'),gust:get('gust'),dir:circularMean(rs.map(x=>x.dir)),rh:get('rh'),cloud:get('cloud'),uv:get('uv'),modelCount:rs.length,spreads:{rain:null,mmMin:amounts.length?Math.min(...amounts):undefined,mmMax:amounts.length?Math.max(...amounts):undefined,temp:spread(rs.map(x=>x.temp)),gust:spread(rs.map(x=>x.gust))}};});}
+function consensusRows(modelRows){const names=Object.keys(modelRows),times=(modelRows[names[0]]||[]).map(x=>x.time);return times.map(time=>{const rs=names.map(n=>modelRows[n].find(x=>x.time===time)).filter(Boolean),get=k=>median(rs.map(x=>x[k])),codes=rs.map(x=>x.code).filter(x=>x!==null);let code=null;if(codes.length){const counts={};codes.forEach(v=>counts[v]=(counts[v]||0)+1);code=Number(Object.keys(counts).sort((a,b)=>counts[b]-counts[a])[0]);}const amounts=rs.map(x=>x.mm).filter(v=>v!==null&&v!==undefined&&Number.isFinite(Number(v))).map(Number);return {time,available:rs.length>0,temp:get('temp'),feel:get('feel'),rain:get('rain'),mm:get('mm'),code,wind:get('wind'),gust:get('gust'),dir:circularMean(rs.map(x=>x.dir)),rh:get('rh'),cloud:get('cloud'),uv:get('uv'),modelCount:rs.length,spreads:{rain:null,mmMin:amounts.length?Math.min(...amounts):undefined,mmMax:amounts.length?Math.max(...amounts):undefined,temp:spread(rs.map(x=>x.temp)),gust:spread(rs.map(x=>x.gust))}};});}
 // V29: 外部服務只讀取後端／GitHub Actions 產生的標準化快取，不在瀏覽器暴露 API Key。
 // 快取格式範例見 v28-provider-cache.schema.json；外部服務尚未經回測前，不混入五模式中位數。
 async function loadV28ProviderCache(courseName,date){
@@ -1579,6 +1579,29 @@ async function loadV28ProviderCache(courseName,date){
  }catch(e){status.textContent="外部服務資料尚未啟用："+e.message+"。請先完成 API 授權及 GitHub Actions 後端介接；原有五模式預報不受影響。";}
 }
 
+// V32.2：優先讀取 GitHub Actions 建立的全台預報快取。
+let forecastCachePromise=null;
+async function loadForecastCache(){
+ if(!forecastCachePromise)forecastCachePromise=(async()=>{
+  const r=await fetch("data/forecast_cache.json?ts="+Date.now(),{cache:"no-store"});
+  if(!r.ok)throw Error("預報快取 HTTP "+r.status);
+  const c=await r.json();if(!c||!c.courses)throw Error("預報快取格式不正確");
+  const t=Date.parse(c.generated_at||"");if(!Number.isFinite(t)||Date.now()-t>36*60*60*1000)throw Error("預報快取超過36小時");
+  return c;
+ })().catch(e=>{forecastCachePromise=null;throw e;});
+ return forecastCachePromise;
+}
+function cachedCourseModels(cache,courseName,date){
+ const key=String(courseName||"").trim().normalize("NFC");
+ const entry=cache.courses[key]||Object.entries(cache.courses).find(([n])=>String(n).trim().normalize("NFC")===key)?.[1];
+ const source=entry?.dates?.[date]?.modelRows||{},out={};
+ for(const [label,rows] of Object.entries(source)){
+  if(!Array.isArray(rows))continue;
+  const usable=rows.filter(x=>x&&/^\\d{2}:\\d{2}$/.test(x.time)&&Number(x.time.slice(0,2))>=6&&Number(x.time.slice(0,2))<=18);
+  if(usable.length)out[label]=usable.map(x=>({...x,available:true,rain:x.rain??null}));
+ }
+ return out;
+}
 async function loadForecast(p,date){
  if(!date)throw Error("請先選擇預報日期。");
  active={lat:Number(p.lat),lon:Number(p.lon),name:p.name,date,rows:[],modelRows:{}};
@@ -1588,48 +1611,25 @@ async function loadForecast(p,date){
  // 清除舊查詢結果，避免失敗時舊資料被誤認為新資料。
  ["hourRows","metrics","rainMetrics","modelCards","v26Stats"].forEach(id=>{const el=$(id);if(el)el.innerHTML="";});
  ["rainChart","rainAmountChart","tempChart","windChart"].forEach(id=>{const el=$(id);if(el){const ctx=el.getContext("2d");if(ctx)ctx.clearRect(0,0,el.width,el.height);}});
- $("apiDiagnosticsText").textContent="正在查詢五組模型；單一請求逾時後會自動重試一次。";
- const results=await Promise.allSettled(modelDefs.map(m=>getModel(p.lat,p.lon,m[1])));
- const modelErrors=[];
- results.forEach((r,i)=>{
-  const label=modelDefs[i][0];
-  if(r.status==="fulfilled"){
-   const rows=extract(r.value,date);
-   if(rows.length)active.modelRows[label]=rows;
-   else modelErrors.push(label+"：API成功，但所選日期沒有06:00–18:00資料");
-  }else modelErrors.push(label+"："+(r.reason?.message||String(r.reason)));
- });
+ let modelErrors=[],forecastSource="五組獨立模式（即時API）",cacheGeneratedAt=null;
+ try{const cache=await loadForecastCache(),cached=cachedCourseModels(cache,p.name,date);if(Object.keys(cached).length){active.modelRows=cached;forecastSource="GitHub Actions 預報快取（"+Object.keys(cached).length+"/5組模式）";cacheGeneratedAt=cache.generated_at;}else modelErrors.push("快取沒有此球場／日期的逐時資料");}catch(e){modelErrors.push("預報快取不可用："+(e.message||String(e)));}
  let names=Object.keys(active.modelRows);
- let forecastSource="五組獨立模式";
- active.forecastSource=forecastSource;
  if(!names.length){
-  try{
-   const fallback=await getModel(p.lat,p.lon,null);
-   const rows=extract(fallback,date);
-   if(!rows.length)throw Error("Best Match API成功，但所選日期沒有06:00–18:00逐時資料");
-   active.modelRows["Open-Meteo Best Match"]=rows;
-   names=Object.keys(active.modelRows);
-   forecastSource="Open-Meteo Best Match 備援";
-   active.forecastSource=forecastSource;
-  }catch(e){
-   const detail="五組模式均失敗："+modelErrors.join("｜")+"；Best Match 備援："+e.message;
-   const diag="球場："+p.name+"\n座標："+p.lat+", "+p.lon+"\n日期："+date+"\n\n"+detail;
-   const box=$("apiDiagnosticsText");if(box)box.textContent=diag;
-   throw Error(detail);
-  }
+  $("status").textContent="預報快取不可用，改以即時API查詢…";
+  const results=await Promise.allSettled(modelDefs.map(m=>getModel(p.lat,p.lon,m[1])));
+  results.forEach((r,i)=>{const label=modelDefs[i][0];if(r.status==="fulfilled"){const rows=extract(r.value,date);if(rows.length)active.modelRows[label]=rows;else modelErrors.push(label+"：所選日期沒有06:00–18:00資料");}else modelErrors.push(label+"："+(r.reason?.message||String(r.reason)));});
+  names=Object.keys(active.modelRows);
  }
- const diagLines=[
-  "球場："+p.name,
-  "座標："+p.lat+", "+p.lon,
-  "日期："+date,
-  "主要資料來源："+forecastSource,
-  "成功模型："+names.join("、"),
-  "失敗模型："+(modelErrors.length?modelErrors.join("\n"):"無")
- ];
+ if(!names.length){
+  try{const fallback=await getModel(p.lat,p.lon,null),rows=extract(fallback,date);if(!rows.length)throw Error("所選日期沒有逐時資料");active.modelRows["Open-Meteo Best Match"]=rows;names=Object.keys(active.modelRows);forecastSource="Open-Meteo Best Match 備援";}
+  catch(e){const detail="快取、五組模式及 Best Match 均無法提供資料："+modelErrors.join("｜")+"；Best Match："+e.message;const box=$("apiDiagnosticsText");if(box)box.textContent="球場："+p.name+"\n日期："+date+"\n\n"+detail;throw Error(detail);}
+ }
+ active.forecastSource=forecastSource;
+ const diagLines=["球場："+p.name,"座標："+p.lat+", "+p.lon,"日期："+date,"主要資料來源："+forecastSource,"快取更新時間："+(cacheGeneratedAt||"非快取資料"),"成功模型："+names.join("、"),"快取／API備註："+(modelErrors.length?modelErrors.join("\n"):"無")];
  const diagBox=$("apiDiagnosticsText");if(diagBox)diagBox.textContent=diagLines.join("\n");
- let base=consensusRows(active.modelRows);
+let base=consensusRows(active.modelRows);
  if(!base.length)throw Error("所選日期沒有06:00–18:00逐時資料。");
- let rainProbInfo;try{rainProbInfo=await getRainProbability(p.lat,p.lon,date);base=base.map(x=>({...x,rain:rainProbInfo.rows[x.time]?.prob??null,rainMembers:rainProbInfo.rows[x.time]?.members??null}));}catch(e){rainProbInfo={source:'不可用',detail:'降雨機率服務未回傳資料：'+e.message};base=base.map(x=>({...x,rain:null}));}
+ let rainProbInfo;const cachedRain=base.some(x=>x.rain!==null&&x.rain!==undefined);if(cachedRain){rainProbInfo={source:'五組模式快取',detail:'降雨機率採預報快取中各模式逐時值的中位數'};}else{try{rainProbInfo=await getRainProbability(p.lat,p.lon,date);base=base.map(x=>({...x,rain:rainProbInfo.rows[x.time]?.prob??null,rainMembers:rainProbInfo.rows[x.time]?.members??null}));}catch(e){rainProbInfo={source:'不可用',detail:'降雨機率服務未回傳資料：'+e.message};base=base.map(x=>({...x,rain:null}));}}
  active.rows=base;
  const valid=base.filter(x=>x.available),avg=k=>{const a=valid.map(x=>x[k]).filter(v=>v!==null);return a.length?a.reduce((z,v)=>z+v,0)/a.length:null;},mx=k=>{const a=valid.map(x=>x[k]).filter(v=>v!==null);return a.length?Math.max(...a):null;};
  const fmt=(v,d=1)=>v===null||v===undefined?"—":Number(v).toFixed(d);
