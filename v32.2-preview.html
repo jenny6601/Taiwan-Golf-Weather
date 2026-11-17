@@ -1454,10 +1454,11 @@ function chart(id,series,maxVal,colors,labels=[],unit="",chartTheme="",weatherCo
     ctx.save();ctx.textAlign="center";ctx.textBaseline="bottom";ctx.font="bold 12px system-ui,sans-serif";ctx.fillStyle=colors[si%colors.length];
     const pairedValue=series[1-si]?.[i];
      if(pairedValue!==null&&pairedValue!==undefined&&Number.isFinite(pairedValue)){
-      const pairedY=yAt(pairedValue),labelOffset=si===0?-9:18;
-      const drawY=Math.max(topPad+11,Math.min(ch-bottom-2,pairedY+labelOffset));
-      ctx.strokeStyle=colors[si%colors.length];ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(x,pairedY);ctx.lineTo(x,drawY+(si===0?4:-4));ctx.stroke();
-      ctx.fillText(Math.round(pairedValue)+"°",x,drawY);
+      const pairedY=yAt(pairedValue);
+      ctx.fillStyle=colors[1-si];
+      ctx.textBaseline=si===0?"bottom":"top";
+      const labelY=si===0?Math.max(topPad+13,pairedY-6):Math.min(ch-bottom-2,pairedY+6);
+      ctx.fillText(Math.round(pairedValue)+"°",x,labelY);
      }
      ctx.restore();
    }
