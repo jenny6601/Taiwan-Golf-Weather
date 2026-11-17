@@ -1612,7 +1612,7 @@ function cachedCourseModels(cache,courseName,date){
  const source=entry?.dates?.[date]?.modelRows||{},out={};
  for(const [label,rows] of Object.entries(source)){
   if(!Array.isArray(rows))continue;
-  const usable=rows.filter(x=>x&&/^\\d{2}:\\d{2}$/.test(x.time)&&Number(x.time.slice(0,2))>=6&&Number(x.time.slice(0,2))<=18);
+  const usable=rows.filter(x=>x&&/^\d{2}:\d{2}$/.test(x.time)&&Number(x.time.slice(0,2))>=6&&Number(x.time.slice(0,2))<=18);
   if(usable.length)out[label]=usable.map(x=>({...x,available:true,rain:x.rain??null}));
  }
  return out;
