@@ -1150,7 +1150,7 @@ function liveWeatherCode(text,rain10){
  }
  if(/霧/.test(t))return 45;if(/晴/.test(t))return 0;if(/雲|陰/.test(t))return 3;
  const rate=Number(rain10)*6;
- return Number.isFinite(rate)&&rate>0?(rate>=7.5?65:rate>=2.5?63:61):3;
+ return Number.isFinite(rate)&&rate>0?(rate>=7.5?65:rate>=2.5?63:61):null;
 }
 function liveRainIcon(amount,period){
  const n=Number(amount);
@@ -1198,11 +1198,15 @@ async function loadLiveObservation(course){
   const w=item.weather,r=item.rainfall,ws=w&&w.station,rs=r&&r.station;
   const temp=w&&w.temperature_c,rh=w&&w.relative_humidity_pct,wind=w&&w.wind_speed_ms,gust=w&&w.wind_gust_ms;
   const rain10=r&&r.precipitation_10m_mm,rain1h=r&&r.precipitation_1h_mm;
-  const feel=liveFeelEstimate(temp,rh,wind),weatherText=(w&&w.weather_text)||((Number(rain10)>0)?"觀測到降雨":(rain10===0)?"近10分鐘未觀測到降雨":"天氣文字資料不足");
-  const code=liveWeatherCode(weatherText,rain10),windKm=Number.isFinite(Number(wind))?Number(wind)*3.6:null,gustKm=Number.isFinite(Number(gust))?Number(gust)*3.6:null;
+  const feel=liveFeelEstimate(temp,rh,wind),rawWeatherText=w&&w.weather_text;
+  const validWeatherText=rawWeatherText!==null&&rawWeatherText!==undefined&&String(rawWeatherText).trim()!==""&&!/^(-99(?:\\.0+)?)$/.test(String(rawWeatherText).trim());
+  const weatherText=validWeatherText?String(rawWeatherText).trim():(Number(rain10)>0?"觀測到降雨":"天氣文字資料不足");
+  const code=liveWeatherCode(validWeatherText?weatherText:(Number(rain10)>0?weatherText:""),rain10);
+  const weatherIcon=code===null?'<span class="wxemoji">—</span>':'<span class="wxemoji">'+wxIcon(code)+'</span>';
+  const windKm=Number.isFinite(Number(wind))?Number(wind)*3.6:null,gustKm=Number.isFinite(Number(gust))?Number(gust)*3.6:null;
   const rainHtml=rain10===null||rain10===undefined?"資料不足":'<span class="live-rain-status">'+liveFmt(rain10,1," mm")+'</span>';
   metrics.innerHTML=[
-   liveMetric("目前天氣",'<span class="wxcell"><span class="wxemoji">'+wxIcon(code)+'</span>'+weatherText+'</span>'),
+   liveMetric("目前天氣",'<span class="wxcell">'+weatherIcon+weatherText+'</span>'),
    liveMetric("氣溫",liveFmt(temp,1," °C")),liveMetric(liveFeelIcon(feel)+'估算體感',liveFmt(feel,1," °C")),liveMetric("濕度",liveFmt(rh,0," %")),
    liveMetric(liveRainIcon(rain10,"10m")+'近10分鐘雨量',rainHtml),liveMetric(liveRainIcon(rain1h,"1h")+'近1小時雨量',liveFmt(rain1h,1," mm")),
    liveMetric("風速",liveFmt(windKm,1," km/h")),liveMetric("陣風",liveFmt(gustKm,1," km/h"))
