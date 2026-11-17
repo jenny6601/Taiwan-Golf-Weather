@@ -35,7 +35,7 @@ SESSION.headers.update({"User-Agent": "Taiwan-Golf-Weather-V32.2/1.0"})
 
 def courses_from_html():
     source = HTML.read_text(encoding="utf-8")
-    match = re.search(r"const taiwanCourses\\s*=\\s*(\\[.*?\\]);", source, re.S)
+    match = re.search(r"const taiwanCourses\s*=\s*(\[.*?\]);", source, re.S)
     if not match:
         raise RuntimeError("Cannot locate taiwanCourses array in v32.2-preview.html")
     courses = json.loads(match.group(1))
