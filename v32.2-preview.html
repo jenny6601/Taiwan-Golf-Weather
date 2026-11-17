@@ -1586,7 +1586,11 @@ async function loadForecastCache(){
   const r=await fetch("data/forecast_cache.json?ts="+Date.now(),{cache:"no-store"});
   if(!r.ok)throw Error("預報快取 HTTP "+r.status);
   const c=await r.json();if(!c||!c.courses)throw Error("預報快取格式不正確");
-  const t=Date.parse(c.generated_at||"");if(!Number.isFinite(t)||Date.now()-t>36*60*60*1000)throw Error("預報快取超過36小時");
+  const t=Date.parse(c.generated_at||"");if(!Number.isFinite(t))throw Error("預報快取更新時間無效");
+  const age=Date.now()-t;
+  if(age < -5*60*1000)throw Error("預報快取更新時間異常（位於未來）");
+  if(age>12*60*60*1000)throw Error("預報快取超過12小時，停止使用");
+  c._cacheAgeMinutes=Math.max(0,age/60000);
   return c;
  })().catch(e=>{forecastCachePromise=null;throw e;});
  return forecastCachePromise;
@@ -1611,8 +1615,16 @@ async function loadForecast(p,date){
  // 清除舊查詢結果，避免失敗時舊資料被誤認為新資料。
  ["hourRows","metrics","rainMetrics","modelCards","v26Stats"].forEach(id=>{const el=$(id);if(el)el.innerHTML="";});
  ["rainChart","rainAmountChart","tempChart","windChart"].forEach(id=>{const el=$(id);if(el){const ctx=el.getContext("2d");if(ctx)ctx.clearRect(0,0,el.width,el.height);}});
- let modelErrors=[],forecastSource="五組獨立模式（即時API）",cacheGeneratedAt=null;
- try{const cache=await loadForecastCache(),cached=cachedCourseModels(cache,p.name,date);if(Object.keys(cached).length){active.modelRows=cached;forecastSource="GitHub Actions 預報快取（"+Object.keys(cached).length+"/5組模式）";cacheGeneratedAt=cache.generated_at;}else modelErrors.push("快取沒有此球場／日期的逐時資料");}catch(e){modelErrors.push("預報快取不可用："+(e.message||String(e)));}
+ let modelErrors=[],forecastSource="五組獨立模式（即時API）",cacheGeneratedAt=null,cacheCandidate=null,cacheAgeMinutes=null,cacheNotice="";
+ try{
+  cacheCandidate=await loadForecastCache();cacheAgeMinutes=cacheCandidate._cacheAgeMinutes;cacheGeneratedAt=cacheCandidate.generated_at;
+  const cached=cachedCourseModels(cacheCandidate,p.name,date);
+  if(!Object.keys(cached).length)modelErrors.push("快取沒有此球場／日期的逐時資料");
+  else if(cacheAgeMinutes<=360){
+   active.modelRows=cached;forecastSource="GitHub Actions 預報快取（"+Object.keys(cached).length+"/5組模式）";
+   if(cacheAgeMinutes>180)cacheNotice="｜提醒：預報快取已超過3小時（"+Math.floor(cacheAgeMinutes/60)+"小時），資料稍舊";
+  }else{cacheNotice="｜預報快取已超過6小時，優先改查即時API";modelErrors.push("快取已超過6小時，先嘗試即時API");}
+ }catch(e){modelErrors.push("預報快取不可用："+(e.message||String(e)));}
  let names=Object.keys(active.modelRows);
  if(!names.length){
   $("status").textContent="預報快取不可用，改以即時API查詢…";
@@ -1620,12 +1632,17 @@ async function loadForecast(p,date){
   results.forEach((r,i)=>{const label=modelDefs[i][0];if(r.status==="fulfilled"){const rows=extract(r.value,date);if(rows.length)active.modelRows[label]=rows;else modelErrors.push(label+"：所選日期沒有06:00–18:00資料");}else modelErrors.push(label+"："+(r.reason?.message||String(r.reason)));});
   names=Object.keys(active.modelRows);
  }
+ if(!names.length&&cacheCandidate&&cacheAgeMinutes>360&&cacheAgeMinutes<=720){
+  const cached=cachedCourseModels(cacheCandidate,p.name,date);
+  if(Object.keys(cached).length){active.modelRows=cached;names=Object.keys(cached);forecastSource="GitHub Actions 舊快取備援（"+names.length+"/5組模式）";cacheNotice="｜警告：即時API不可用，使用6–12小時舊快取，僅供參考";}
+ }
  if(!names.length){
   try{const fallback=await getModel(p.lat,p.lon,null),rows=extract(fallback,date);if(!rows.length)throw Error("所選日期沒有逐時資料");active.modelRows["Open-Meteo Best Match"]=rows;names=Object.keys(active.modelRows);forecastSource="Open-Meteo Best Match 備援";}
   catch(e){const detail="快取、五組模式及 Best Match 均無法提供資料："+modelErrors.join("｜")+"；Best Match："+e.message;const box=$("apiDiagnosticsText");if(box)box.textContent="球場："+p.name+"\n日期："+date+"\n\n"+detail;throw Error(detail);}
  }
  active.forecastSource=forecastSource;
- const diagLines=["球場："+p.name,"座標："+p.lat+", "+p.lon,"日期："+date,"主要資料來源："+forecastSource,"快取更新時間："+(cacheGeneratedAt||"非快取資料"),"成功模型："+names.join("、"),"快取／API備註："+(modelErrors.length?modelErrors.join("\n"):"無")];
+ $("status").textContent="預報資料已載入｜"+forecastSource+cacheNotice;
+ const diagLines=["球場："+p.name,"座標："+p.lat+", "+p.lon,"日期："+date,"主要資料來源："+forecastSource,"快取更新時間："+(cacheGeneratedAt||"非快取資料"),"快取年齡："+(cacheAgeMinutes===null?"—":Math.floor(cacheAgeMinutes/60)+"小時"+Math.floor(cacheAgeMinutes%60)+"分"),"快取狀態："+(cacheNotice||"正常（3小時內）"),"成功模型："+names.join("、"),"快取／API備註："+(modelErrors.length?modelErrors.join("\n"):"無")];
  const diagBox=$("apiDiagnosticsText");if(diagBox)diagBox.textContent=diagLines.join("\n");
 let base=consensusRows(active.modelRows);
  if(!base.length)throw Error("所選日期沒有06:00–18:00逐時資料。");
