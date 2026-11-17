@@ -1207,9 +1207,9 @@ async function loadLiveObservation(course){
   const rain10=r&&r.precipitation_10m_mm,rain1h=r&&r.precipitation_1h_mm;
   const feel=liveFeelEstimate(temp,rh,wind),rawWeatherText=w&&w.weather_text;
   const validWeatherText=rawWeatherText!==null&&rawWeatherText!==undefined&&String(rawWeatherText).trim()!==""&&!/^(-99(?:\\.0+)?)$/.test(String(rawWeatherText).trim());
-  const weatherText=validWeatherText?String(rawWeatherText).trim():(Number(rain10)>0?"觀測到降雨":"天氣文字資料不足");
+  const weatherText=validWeatherText?String(rawWeatherText).trim():(Number(rain10)>0?"觀測到降雨":"");
   const code=liveWeatherCode(validWeatherText?weatherText:(Number(rain10)>0?weatherText:""),rain10);
-  const weatherIcon=code===null?'<span class="wxemoji">—</span>':'<span class="wxemoji">'+wxIcon(code)+'</span>';
+  const weatherIcon=code===null?"":'<span class="wxemoji">'+wxIcon(code)+'</span>';
   const windKm=Number.isFinite(Number(wind))?Number(wind)*3.6:null,gustKm=Number.isFinite(Number(gust))?Number(gust)*3.6:null;
   const rainHtml=rain10===null||rain10===undefined?"資料不足":'<span class="live-rain-status">'+liveFmt(rain10,1," mm")+'</span>';
   metrics.innerHTML=[
