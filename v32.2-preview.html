@@ -1390,10 +1390,12 @@ function chart(id,series,maxVal,colors,labels=[],unit="",chartTheme="",weatherCo
  ctx.clearRect(0,0,cw,ch);
  const vals=series.flat().filter(v=>v!==null&&Number.isFinite(v));if(!vals.length)return;
  const left=48,right=12,topPad=chartTheme==="temperature"?42:chartTheme==="rainProbability"?50:20,bottom=42,plotH=ch-topPad-bottom,plotW=cw-left-right;
- const top=maxVal||Math.max(...vals,1);
+ const tempMin=chartTheme==="temperature"?Math.floor((Math.min(...vals)-2)/5)*5:0;
+ const top=chartTheme==="temperature"?Math.ceil((Math.max(...vals)+2)/5)*5:(maxVal||Math.max(...vals,1));
+ const yAt=value=>topPad+plotH-((value-tempMin)/(top-tempMin))*plotH;
  ctx.font="12px sans-serif";ctx.textAlign="right";ctx.textBaseline="middle";
  for(let t=0;t<=4;t++){
-  const value=top*t/4,y=topPad+plotH-(value/top)*plotH;
+  const value=tempMin+(top-tempMin)*t/4,y=yAt(value);
   ctx.strokeStyle="#e2e8f0";ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(left,y);ctx.lineTo(w-right,y);ctx.stroke();
   ctx.fillStyle="#475569";ctx.fillText(`${Number(value.toFixed(1))}${unit}`,left-7,y);
  }
@@ -1408,13 +1410,13 @@ function chart(id,series,maxVal,colors,labels=[],unit="",chartTheme="",weatherCo
   ctx.strokeStyle=colors[si%colors.length];ctx.lineWidth=2.5;ctx.beginPath();let started=false;
   arr.forEach((v,i)=>{
    if(v===null||!Number.isFinite(v)){started=false;return;}
-   const x=xAt(i),y=topPad+plotH-(v/top)*plotH;
+   const x=xAt(i),y=yAt(v);
    if(!started){ctx.moveTo(x,y);started=true;}else ctx.lineTo(x,y);
   });
   ctx.stroke();
   arr.forEach((v,i)=>{
    if(v===null||!Number.isFinite(v))return;
-   const x=xAt(i),y=topPad+plotH-(v/top)*plotH;
+   const x=xAt(i),y=yAt(v);
    ctx.fillStyle=colors[si%colors.length];ctx.beginPath();ctx.arc(x,y,2.5,0,Math.PI*2);ctx.fill();
    let mark="";
    if(chartTheme==="rainAmount"){
@@ -1450,7 +1452,9 @@ function chart(id,series,maxVal,colors,labels=[],unit="",chartTheme="",weatherCo
     ctx.restore();
    }else if(chartTheme==="temperature"){
     ctx.save();ctx.textAlign="center";ctx.textBaseline="bottom";ctx.font="bold 12px system-ui,sans-serif";ctx.fillStyle=colors[si%colors.length];
-    const markY=si===0?y-13:y+27;const drawY=Math.max(13,Math.min(ch-bottom+29,markY));ctx.fillText(Math.round(v)+"°",x,drawY);ctx.restore();
+    const labelOffset=si===0?-9:18,drawY=Math.max(topPad+11,Math.min(ch-bottom-2,y+labelOffset));
+     ctx.strokeStyle=colors[si%colors.length];ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x,drawY+(si===0?4:-4));ctx.stroke();
+     ctx.fillText(Math.round(v)+"°",x,drawY);ctx.restore();
    }
   });
  });
