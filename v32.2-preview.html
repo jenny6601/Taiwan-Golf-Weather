@@ -1452,9 +1452,14 @@ function chart(id,series,maxVal,colors,labels=[],unit="",chartTheme="",weatherCo
     ctx.restore();
    }else if(chartTheme==="temperature"){
     ctx.save();ctx.textAlign="center";ctx.textBaseline="bottom";ctx.font="bold 12px system-ui,sans-serif";ctx.fillStyle=colors[si%colors.length];
-    const labelOffset=si===0?-9:18,drawY=Math.max(topPad+11,Math.min(ch-bottom-2,y+labelOffset));
-     ctx.strokeStyle=colors[si%colors.length];ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x,drawY+(si===0?4:-4));ctx.stroke();
-     ctx.fillText(Math.round(v)+"°",x,drawY);ctx.restore();
+    const pairedValue=series[1-si]?.[i];
+     if(pairedValue!==null&&pairedValue!==undefined&&Number.isFinite(pairedValue)){
+      const pairedY=yAt(pairedValue),labelOffset=si===0?-9:18;
+      const drawY=Math.max(topPad+11,Math.min(ch-bottom-2,pairedY+labelOffset));
+      ctx.strokeStyle=colors[si%colors.length];ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(x,pairedY);ctx.lineTo(x,drawY+(si===0?4:-4));ctx.stroke();
+      ctx.fillText(Math.round(pairedValue)+"°",x,drawY);
+     }
+     ctx.restore();
    }
   });
  });
