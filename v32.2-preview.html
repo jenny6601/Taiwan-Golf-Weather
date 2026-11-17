@@ -1589,33 +1589,42 @@ async function loadForecast(p,date){
  ["hourRows","metrics","rainMetrics","modelCards","v26Stats"].forEach(id=>{const el=$(id);if(el)el.innerHTML="";});
  ["rainChart","rainAmountChart","tempChart","windChart"].forEach(id=>{const el=$(id);if(el){const ctx=el.getContext("2d");if(ctx)ctx.clearRect(0,0,el.width,el.height);}});
  $("apiDiagnosticsText").textContent="正在查詢五組模型；單一請求逾時後會自動重試一次。";
- const results=await Promise.allSettled(modelDefs.map(m=>getModel(p.lat,p.lon,m[1])));
- const modelErrors=[];
- results.forEach((r,i)=>{
-  const label=modelDefs[i][0];
-  if(r.status==="fulfilled"){
-   const rows=extract(r.value,date);
-   if(rows.length)active.modelRows[label]=rows;
-   else modelErrors.push(label+"：API成功，但所選日期沒有06:00–18:00資料");
-  }else modelErrors.push(label+"："+(r.reason?.message||String(r.reason)));
- });
- let names=Object.keys(active.modelRows);
- let forecastSource="五組獨立模式";
- active.forecastSource=forecastSource;
- if(!names.length){
-  try{
-   const fallback=await getModel(p.lat,p.lon,null);
-   const rows=extract(fallback,date);
-   if(!rows.length)throw Error("Best Match API成功，但所選日期沒有06:00–18:00逐時資料");
-   active.modelRows["Open-Meteo Best Match"]=rows;
-   names=Object.keys(active.modelRows);
-   forecastSource="Open-Meteo Best Match 備援";
-   active.forecastSource=forecastSource;
-  }catch(e){
-   const detail="五組模式均失敗："+modelErrors.join("｜")+"；Best Match 備援："+e.message;
-   const diag="球場："+p.name+"\n座標："+p.lat+", "+p.lon+"\n日期："+date+"\n\n"+detail;
-   const box=$("apiDiagnosticsText");if(box)box.textContent=diag;
-   throw Error(detail);
+ let modelErrors=[],names=[],forecastSource="五組獨立模式",cacheLoaded=false;
+ try{
+  const cacheResponse=await fetch("data/forecast_cache.json?ts="+Date.now(),{cache:"no-store"});
+  if(cacheResponse.ok){
+   const cache=await cacheResponse.json(),cachedCourse=cache.courses?.[p.name],cachedDate=cachedCourse?.dates?.[date];
+   if(cachedDate?.modelRows){
+    for(const [label,rows] of Object.entries(cachedDate.modelRows))if(Array.isArray(rows)&&rows.length)active.modelRows[label]=rows;
+    names=Object.keys(active.modelRows);
+    if(names.length){
+     cacheLoaded=true;active.forecastCacheGeneratedAt=cache.generated_at;
+     forecastSource="GitHub Actions 預報快取";active.forecastSource=forecastSource;
+     $("apiDiagnosticsText").textContent="快取產生時間："+cache.generated_at+"｜成功模型："+names.join("、")+"｜資料由後端預先取得。";
+    }
+   }
+  }
+ }catch(cacheError){modelErrors.push("預報快取讀取失敗："+(cacheError.message||String(cacheError)));}
+ if(!cacheLoaded){
+  $("status").textContent="預報快取尚不可用，嘗試直接連線 Open-Meteo…";
+  const results=await Promise.allSettled(modelDefs.map(m=>getModel(p.lat,p.lon,m[1])));
+  results.forEach((r,i)=>{
+   const label=modelDefs[i][0];
+   if(r.status==="fulfilled"){const rows=extract(r.value,date);if(rows.length)active.modelRows[label]=rows;else modelErrors.push(label+"：API成功，但所選日期沒有06:00–18:00資料");}
+   else modelErrors.push(label+"："+(r.reason?.message||String(r.reason)));
+  });
+  names=Object.keys(active.modelRows);
+  if(!names.length){
+   try{
+    const fallback=await getModel(p.lat,p.lon,null),rows=extract(fallback,date);
+    if(!rows.length)throw Error("Best Match API成功，但所選日期沒有06:00–18:00逐時資料");
+    active.modelRows["Open-Meteo Best Match"]=rows;names=Object.keys(active.modelRows);
+    forecastSource="Open-Meteo Best Match 備援";active.forecastSource=forecastSource;
+   }catch(e){
+    const detail="預報快取尚無此球場／日期資料；瀏覽器直連五組模式亦失敗："+modelErrors.join("｜")+"；Best Match 備援："+e.message;
+    const box=$("apiDiagnosticsText");if(box)box.textContent="球場："+p.name+"\n座標："+p.lat+", "+p.lon+"\n日期："+date+"\n\n"+detail;
+    throw Error(detail);
+   }
   }
  }
  const diagLines=[
@@ -1629,7 +1638,9 @@ async function loadForecast(p,date){
  const diagBox=$("apiDiagnosticsText");if(diagBox)diagBox.textContent=diagLines.join("\n");
  let base=consensusRows(active.modelRows);
  if(!base.length)throw Error("所選日期沒有06:00–18:00逐時資料。");
- let rainProbInfo;try{rainProbInfo=await getRainProbability(p.lat,p.lon,date);base=base.map(x=>({...x,rain:rainProbInfo.rows[x.time]?.prob??null,rainMembers:rainProbInfo.rows[x.time]?.members??null}));}catch(e){rainProbInfo={source:'不可用',detail:'降雨機率服務未回傳資料：'+e.message};base=base.map(x=>({...x,rain:null}));}
+ let rainProbInfo;
+ if(cacheLoaded){rainProbInfo={source:"五模式降雨機率中位數",detail:"降雨機率已隨五組模式由 GitHub Actions 預先快取；快取時間："+(active.forecastCacheGeneratedAt||"請見 API 診斷資訊")};}
+ else{try{rainProbInfo=await getRainProbability(p.lat,p.lon,date);base=base.map(x=>({...x,rain:rainProbInfo.rows[x.time]?.prob??null,rainMembers:rainProbInfo.rows[x.time]?.members??null}));}catch(e){rainProbInfo={source:"不可用",detail:"降雨機率服務未回傳資料："+e.message};base=base.map(x=>({...x,rain:null}));}}
  active.rows=base;
  const valid=base.filter(x=>x.available),avg=k=>{const a=valid.map(x=>x[k]).filter(v=>v!==null);return a.length?a.reduce((z,v)=>z+v,0)/a.length:null;},mx=k=>{const a=valid.map(x=>x[k]).filter(v=>v!==null);return a.length?Math.max(...a):null;};
  const fmt=(v,d=1)=>v===null||v===undefined?"—":Number(v).toFixed(d);
