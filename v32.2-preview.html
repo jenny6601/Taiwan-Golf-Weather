@@ -1456,7 +1456,7 @@ function chart(id,series,maxVal,colors,labels=[],unit="",chartTheme="",weatherCo
  });
  if(chartTheme==="temperature"&&series.length>=2){
   ctx.save();ctx.font="bold 12px system-ui,sans-serif";ctx.textAlign="center";
-  const red=series[1],blue=series[0],labelGap=30;
+  const red=series[1],blue=series[0],labelGap=14;
   red.forEach((v,i)=>{
    if(v===null||!Number.isFinite(v))return;
    const x=xAt(i),y=yAt(v),labelY=Math.max(topPad+15,y-labelGap);
