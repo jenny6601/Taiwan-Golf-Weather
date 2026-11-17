@@ -1288,10 +1288,10 @@ function wxIcon(code){
   return paths;
  };
  const sun='<circle cx="16" cy="13" r="7" fill="#FDBA32" stroke="#B7791F" stroke-width="1.5"/><g stroke="#D97706" stroke-width="2" stroke-linecap="round"><path d="M16 1v4M16 21v4M4 13H1m30 0h-4M7 4l3 3m12 12 3 3m0-18-3 3M10 19l-3 3"/></g>';
- if(n>=95)return svg(defs+cloud("#DC2626",2.8,"#64748B")+'<path d="m25 20-9 13h8l-2 10 13-17h-9l3-6Z" fill="#FACC15" stroke="#CA8A04" stroke-width="1.1"/>'+rain(3,"#0EA5E9"),"豪雨或雷雨");
- if(n===65||n===67||n===82)return svg(defs+cloud("#DC2626",2.8)+'<g>'+rain(3,"#0284C7")+'</g>',"大雨：紅色雲邊及三條雨絲");
- if(n===63||n===81)return svg(defs+cloud()+'<g>'+rain(2,"#0284C7")+'</g>',"中雨：兩條雨絲");
- if((n>=51&&n<=57)||n===61||n===80)return svg(defs+cloud()+'<g>'+rain(1,"#0284C7")+'</g>',"小雨：一滴雨滴");
+ if(n>=95)return svg(defs+cloud("#DC2626",2.8,"#475569")+'<path d="m25 20-9 13h8l-2 10 13-17h-9l3-6Z" fill="#FACC15" stroke="#CA8A04" stroke-width="1.1"/>'+rain(3,"#0EA5E9"),"豪雨或雷雨：深灰色雲體");
+ if(n===65||n===67||n===82)return svg(defs+cloud("#DC2626",2.8,"#475569")+'<g>'+rain(3,"#0284C7")+'</g>',"大雨：深灰色雲體、紅色雲邊及三條雨絲");
+ if(n===63||n===81)return svg(defs+cloud("#64748B",1.8,"#CBD5E1")+'<g>'+rain(2,"#0284C7")+'</g>',"中雨：淺灰色雲體及兩條雨絲");
+ if((n>=51&&n<=57)||n===61||n===80)return svg(defs+cloud("#64748B",1.8,"#D1D5DB")+'<g>'+rain(1,"#0284C7")+'</g>',"小雨：淺灰色雲體及一滴雨滴");
  if(n>=45)return svg('<path d="M7 13h34M4 21h38M8 29h32M13 37h22" stroke="#64748B" stroke-width="2.8" stroke-linecap="round"/><path d="M10 8h28" stroke="#CBD5E1" stroke-width="2" stroke-linecap="round"/>',"有霧");
  if(n===0)return svg(defs+sun,"晴朗");
  if(n<=2)return svg(defs+sun+cloud(),"晴時多雲");
