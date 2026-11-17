@@ -1,6 +1,6 @@
-
 (() => {
   if (!("serviceWorker" in navigator)) {
+    console.warn("Service Worker is not supported.");
     return;
   }
 
@@ -8,8 +8,8 @@
     try {
       const registration =
         await navigator.serviceWorker.register(
-          "../sw.js",
-          { scope: "../" }
+          "./sw.js",
+          { scope: "./" }
         );
 
       console.log(
