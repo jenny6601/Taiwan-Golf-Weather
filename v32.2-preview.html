@@ -1390,14 +1390,15 @@ function chart(id,series,maxVal,colors,labels=[],unit="",chartTheme="",weatherCo
  ctx.clearRect(0,0,cw,ch);
  const vals=series.flat().filter(v=>v!==null&&Number.isFinite(v));if(!vals.length)return;
  const left=48,right=12,topPad=chartTheme==="temperature"?42:chartTheme==="rainProbability"?50:20,bottom=42,plotH=ch-topPad-bottom,plotW=cw-left-right;
- const tempMin=chartTheme==="temperature"?Math.floor((Math.min(...vals)-2)/5)*5:0;
- const top=chartTheme==="temperature"?Math.ceil((Math.max(...vals)+2)/5)*5:(maxVal||Math.max(...vals,1));
+ const tempMin=chartTheme==="temperature"?5:0;
+ const top=chartTheme==="temperature"?35:(maxVal||Math.max(...vals,1));
  const yAt=value=>topPad+plotH-((value-tempMin)/(top-tempMin))*plotH;
  ctx.font="12px sans-serif";ctx.textAlign="right";ctx.textBaseline="middle";
- for(let t=0;t<=4;t++){
-  const value=tempMin+(top-tempMin)*t/4,y=yAt(value);
+ const tickCount=chartTheme==="temperature"?6:4;
+ for(let t=0;t<=tickCount;t++){
+  const value=tempMin+(top-tempMin)*t/tickCount,y=yAt(value);
   ctx.strokeStyle="#e2e8f0";ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(left,y);ctx.lineTo(w-right,y);ctx.stroke();
-  ctx.fillStyle="#475569";ctx.fillText(`${Number(value.toFixed(1))}${unit}`,left-7,y);
+  ctx.fillStyle="#475569";ctx.fillText(`${Number(value.toFixed(0))}${unit}`,left-7,y);
  }
  ctx.strokeStyle="#94a3b8";ctx.beginPath();ctx.moveTo(left,topPad);ctx.lineTo(left,topPad+plotH);ctx.lineTo(w-right,topPad+plotH);ctx.stroke();
  const n=Math.max(1,series[0]?.length||0),xAt=i=>left+(i*plotW/Math.max(1,n-1));
@@ -1454,17 +1455,21 @@ function chart(id,series,maxVal,colors,labels=[],unit="",chartTheme="",weatherCo
   });
  });
  if(chartTheme==="temperature"&&series.length>=2){
-  ctx.save();ctx.font="bold 12px system-ui,sans-serif";ctx.textAlign="center";ctx.lineWidth=3;ctx.strokeStyle="rgba(255,255,255,0.96)";
-  const red=series[1],blue=series[0];
+  ctx.save();ctx.font="bold 12px system-ui,sans-serif";ctx.textAlign="center";
+  const red=series[1],blue=series[0],labelGap=30;
   red.forEach((v,i)=>{
    if(v===null||!Number.isFinite(v))return;
-   const x=xAt(i),y=yAt(v),labelY=Math.max(topPad+12,y-11);
-   ctx.textBaseline="bottom";ctx.strokeText(Math.round(v)+"°",x,labelY);ctx.fillStyle="#dc2626";ctx.fillText(Math.round(v)+"°",x,labelY);
+   const x=xAt(i),y=yAt(v),labelY=Math.max(topPad+15,y-labelGap);
+   ctx.textBaseline="bottom";
+   ctx.fillStyle="rgba(255,255,255,0.96)";ctx.fillRect(x-13,labelY-14,26,16);
+   ctx.fillStyle="#dc2626";ctx.fillText(Math.round(v)+"°",x,labelY);
   });
   blue.forEach((v,i)=>{
    if(v===null||!Number.isFinite(v))return;
-   const x=xAt(i),y=yAt(v),labelY=Math.min(ch-bottom-1,y+11);
-   ctx.textBaseline="top";ctx.strokeText(Math.round(v)+"°",x,labelY);ctx.fillStyle="#1769aa";ctx.fillText(Math.round(v)+"°",x,labelY);
+   const x=xAt(i),y=yAt(v),labelY=Math.min(ch-bottom-1,y+labelGap);
+   ctx.textBaseline="top";
+   ctx.fillStyle="rgba(255,255,255,0.96)";ctx.fillRect(x-13,labelY-1,26,16);
+   ctx.fillStyle="#1769aa";ctx.fillText(Math.round(v)+"°",x,labelY);
   });
   ctx.restore();
  }
