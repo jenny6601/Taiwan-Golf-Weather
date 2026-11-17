@@ -1680,5 +1680,26 @@ renderValidation();
 initForecastDatePicker();
 initCourseDatabase();
 
+// V32.2：首次開啟頁面，自動載入礁溪球場當日預報；即時觀測仍由獨立流程同步載入。
+function autoLoadDefaultCourse(){
+ const defaultCourseName="礁溪";
+ const index=taiwanCourses.findIndex(c=>String(c.name||"").trim()===defaultCourseName);
+ if(index<0){
+  $("courseAutoStatus").textContent="預設球場「礁溪」不在球場資料庫，請手動選擇球場。";
+  return;
+ }
+ const course=taiwanCourses[index];
+ $("countySelect").value=course.city||"";
+ renderCourseDatabase();
+ const button=$('courseList').querySelector('button[data-course="'+index+'"]');
+ document.querySelectorAll("[data-quick-course]").forEach(x=>x.classList.toggle("quick-selected",x.dataset.quickCourse===defaultCourseName));
+ if(!button){
+  $("courseAutoStatus").textContent="已找到預設球場，但球場清單尚未建立，請手動選擇。";
+  return;
+ }
+ autoLoadDatabaseCourse(course,button);
+}
+autoLoadDefaultCourse();
+
 </script>
 </body></html>
