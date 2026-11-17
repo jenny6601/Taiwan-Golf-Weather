@@ -1450,14 +1450,24 @@ function chart(id,series,maxVal,colors,labels=[],unit="",chartTheme="",weatherCo
      ctx.strokeStyle="#111318";ctx.lineWidth=10;ctx.stroke();
     }
     ctx.restore();
-   }else if(chartTheme==="temperature"){
-    ctx.save();ctx.textAlign="center";ctx.textBaseline="bottom";ctx.font="bold 12px system-ui,sans-serif";ctx.fillStyle=colors[si%colors.length];
-    const labelOffset=si===0?-9:18,drawY=Math.max(topPad+11,Math.min(ch-bottom-2,y+labelOffset));
-     ctx.strokeStyle=colors[si%colors.length];ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x,drawY+(si===0?4:-4));ctx.stroke();
-     ctx.fillText(Math.round(v)+"°",x,drawY);ctx.restore();
    }
   });
  });
+ if(chartTheme==="temperature"&&series.length>=2){
+  ctx.save();ctx.font="bold 12px system-ui,sans-serif";ctx.textAlign="center";ctx.lineWidth=3;ctx.strokeStyle="rgba(255,255,255,0.96)";
+  const red=series[1],blue=series[0];
+  red.forEach((v,i)=>{
+   if(v===null||!Number.isFinite(v))return;
+   const x=xAt(i),y=yAt(v),labelY=Math.max(topPad+12,y-11);
+   ctx.textBaseline="bottom";ctx.strokeText(Math.round(v)+"°",x,labelY);ctx.fillStyle="#dc2626";ctx.fillText(Math.round(v)+"°",x,labelY);
+  });
+  blue.forEach((v,i)=>{
+   if(v===null||!Number.isFinite(v))return;
+   const x=xAt(i),y=yAt(v),labelY=Math.min(ch-bottom-1,y+11);
+   ctx.textBaseline="top";ctx.strokeText(Math.round(v)+"°",x,labelY);ctx.fillStyle="#1769aa";ctx.fillText(Math.round(v)+"°",x,labelY);
+  });
+  ctx.restore();
+ }
 }
 
 // V31.3：共用請求逾時與短次數重試，避免網路瞬斷直接令模型失敗。
