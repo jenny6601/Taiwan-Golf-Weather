@@ -213,6 +213,10 @@ def build_snapshot(courses, datasets):
             if dataset_code == "O-A0001-001":
                 element = selected["raw"].get("WeatherElement") or selected["raw"].get("weatherElement") or {}
                 weather_text = element.get("Weather") or element.get("weather")
+                if weather_text is not None:
+                    weather_text = str(weather_text).strip()
+                    if not weather_text or weather_text in {"-99", "-99.0"}:
+                        weather_text = None
                 course_entry["weather"] = {"station": station, "weather_text": weather_text, **selected["values"]}
             else:
                 course_entry["rainfall"] = {"station": station, **selected["values"]}
