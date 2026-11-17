@@ -1454,16 +1454,16 @@ function chart(id,series,maxVal,colors,labels=[],unit="",chartTheme="",weatherCo
   });
  });
  if(chartTheme==="temperature"&&series.length>=2){
-  ctx.save();ctx.font="bold 12px system-ui,sans-serif";ctx.textAlign="center";ctx.lineWidth=3;ctx.strokeStyle="rgba(255,255,255,0.96)";
-  const red=series[1],blue=series[0];
+  ctx.save();ctx.font="bold 12px system-ui,sans-serif";ctx.textAlign="center";ctx.lineWidth=4;ctx.strokeStyle="rgba(255,255,255,0.98)";
+  const red=series[1],blue=series[0],labelGap=21;
   red.forEach((v,i)=>{
    if(v===null||!Number.isFinite(v))return;
-   const x=xAt(i),y=yAt(v),labelY=Math.max(topPad+12,y-11);
+   const x=xAt(i),y=yAt(v),labelY=Math.max(topPad+16,y-labelGap);
    ctx.textBaseline="bottom";ctx.strokeText(Math.round(v)+"°",x,labelY);ctx.fillStyle="#dc2626";ctx.fillText(Math.round(v)+"°",x,labelY);
   });
   blue.forEach((v,i)=>{
    if(v===null||!Number.isFinite(v))return;
-   const x=xAt(i),y=yAt(v),labelY=Math.min(ch-bottom-1,y+11);
+   const x=xAt(i),y=yAt(v),labelY=Math.min(ch-bottom-1,y+labelGap);
    ctx.textBaseline="top";ctx.strokeText(Math.round(v)+"°",x,labelY);ctx.fillStyle="#1769aa";ctx.fillText(Math.round(v)+"°",x,labelY);
   });
   ctx.restore();
