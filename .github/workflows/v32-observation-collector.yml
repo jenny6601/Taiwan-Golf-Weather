@@ -94,5 +94,14 @@ jobs:
             echo "No public snapshot or preview changes."
           else
             git -C publish commit -m "Publish V32.2 live observations and isolated preview"
-            git -C publish push origin HEAD:main
+            for attempt in 1 2 3; do
+              git -C publish fetch origin main
+              git -C publish rebase origin/main
+              if git -C publish push origin HEAD:main; then
+                exit 0
+              fi
+              sleep 3
+            done
+            echo "Failed to publish live CWA snapshot after three attempts."
+            exit 1
           fi
