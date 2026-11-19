@@ -2,6 +2,10 @@ name: V32.2 Scheduled Live Data Publisher
 
 on:
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/v32-observation-collector.yml'
   schedule:
     # Use the existing scheduled workflow entry point that has already run successfully.
     - cron: "*/10 * * * *"
