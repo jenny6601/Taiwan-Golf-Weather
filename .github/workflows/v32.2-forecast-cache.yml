@@ -2,6 +2,11 @@ name: V32.2 Forecast Cache Builder
 
 on:
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/v32.2-forecast-cache.yml'
+      - 'scripts/build_forecast_cache.py'
   schedule:
     - cron: "25 * * * *"
 
@@ -25,7 +30,7 @@ jobs:
           python-version: "3.12"
       - name: Install dependencies
         run: pip install -r requirements.txt
-      - name: Build 57-course, five-model forecast cache
+      - name: Build 57-course, six-model forecast cache
         run: python scripts/build_forecast_cache.py
       - name: Publish forecast cache
         run: |
