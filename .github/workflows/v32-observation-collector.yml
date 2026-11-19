@@ -47,6 +47,7 @@ jobs:
         run: pip install -r source/requirements.txt
 
       - name: Ingest CWA station observations into Supabase (Jiaoxi pilot)
+        continue-on-error: true
         env:
           CWA_API_KEY: ${{ secrets.CWA_API_KEY }}
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
