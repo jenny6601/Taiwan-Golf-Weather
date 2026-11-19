@@ -42,7 +42,7 @@ jobs:
       - name: Install dependencies
         run: pip install -r source/requirements.txt
 
-      - name: Collect observations for all 57 golf courses
+      - name: Ingest CWA station observations into Supabase (Jiaoxi pilot)
         env:
           CWA_API_KEY: ${{ secrets.CWA_API_KEY }}
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
@@ -50,6 +50,13 @@ jobs:
         run: |
           cd source
           python -m scripts.collect_observations --source cwa
+
+      - name: Build fresh CWA live snapshot for all 57 golf courses
+        env:
+          CWA_API_KEY: \${{ secrets.CWA_API_KEY }}
+        run: |
+          cd source
+          python -m scripts.build_live_observations
 
       - name: Verify snapshot and preview
         run: |
