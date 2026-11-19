@@ -22,7 +22,15 @@ MODELS = [
     ("DWD ICON", "icon_seamless"),
     ("JMA GSM", "jma_seamless"),
     ("Canada GEM", "cmc_gem_seamless"),
+    ("ECMWF AIFS", "ecmwf_aifs025_single"),
 ]
+AIFS_MODEL_ID = "ecmwf_aifs025_single"
+AIFS_REFRESH_HOURS = 5.5
+AIFS_HOURLY = ",".join([
+    "temperature_2m", "relative_humidity_2m", "apparent_temperature",
+    "precipitation", "weather_code", "wind_speed_10m",
+    "wind_direction_10m", "cloud_cover",
+])
 HOURLY = ",".join([
     "temperature_2m", "relative_humidity_2m", "apparent_temperature",
     "precipitation", "precipitation_probability", "weather_code",
@@ -45,19 +53,27 @@ def courses_from_html():
 
 
 def fetch_model(course, label, model):
+    is_aifs = model == AIFS_MODEL_ID
     base_params = {
         "latitude": course["lat"], "longitude": course["lon"],
         "models": model, "timezone": "Asia/Taipei",
-        "forecast_days": 16, "wind_speed_unit": "kmh",
+        "forecast_days": 15 if is_aifs else 16, "wind_speed_unit": "kmh",
     }
-    # Some deterministic model endpoints do not expose every optional field.
-    # Retry progressively smaller hourly-variable sets just like the browser client.
-    hourly_options = [
-        HOURLY,
-        HOURLY.replace(",uv_index", ""),
-        "temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,weather_code,wind_speed_10m,wind_gusts_10m,wind_direction_10m,cloud_cover",
-        "temperature_2m,precipitation,weather_code,wind_speed_10m,wind_gusts_10m,wind_direction_10m",
-    ]
+    # AIFS Single has native 6-hourly output and does not provide native
+    # precipitation probability, wind gusts, or UV index. Open-Meteo returns
+    # an hourly interpolated series for a consistent display, so request only
+    # variables supported by AIFS and leave unsupported fields as null.
+    if is_aifs:
+        hourly_options = [AIFS_HOURLY]
+    else:
+        # Some deterministic model endpoints do not expose every optional field.
+        # Retry progressively smaller hourly-variable sets just like the browser client.
+        hourly_options = [
+            HOURLY,
+            HOURLY.replace(",uv_index", ""),
+            "temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,weather_code,wind_speed_10m,wind_gusts_10m,wind_direction_10m,cloud_cover",
+            "temperature_2m,precipitation,weather_code,wind_speed_10m,wind_gusts_10m,wind_direction_10m",
+        ]
     last = None
     for hourly_fields in hourly_options:
       for attempt in range(2):
@@ -103,18 +119,66 @@ def fetch_model(course, label, model):
 
 def main():
     courses = courses_from_html()
-    today = dt.datetime.now(dt.timezone.utc).astimezone(
-        dt.timezone(dt.timedelta(hours=8))
-    ).date()
+    now = dt.datetime.now(dt.timezone.utc)
+    now_iso = now.isoformat()
+    today = now.astimezone(dt.timezone(dt.timedelta(hours=8))).date()
+
+    # AIFS is published every six hours. Reuse the last successful AIFS rows
+    # between model cycles instead of making 57 redundant requests every hour.
+    previous = {}
+    if OUTPUT.exists():
+        try:
+            previous = json.loads(OUTPUT.read_text(encoding="utf-8"))
+        except Exception as exc:
+            print(f"Previous forecast cache could not be reused: {exc}")
+    previous_model_times = previous.get("model_generated_at", {}) if isinstance(previous, dict) else {}
+    previous_aifs_time = previous_model_times.get("ECMWF AIFS")
+    try:
+        previous_aifs_dt = dt.datetime.fromisoformat(previous_aifs_time.replace("Z", "+00:00"))
+        if previous_aifs_dt.tzinfo is None:
+            previous_aifs_dt = previous_aifs_dt.replace(tzinfo=dt.timezone.utc)
+    except Exception:
+        previous_aifs_dt = None
+    refresh_aifs = previous_aifs_dt is None or (now - previous_aifs_dt).total_seconds() >= AIFS_REFRESH_HOURS * 3600
+
     cache = {
         "schema_version": 1,
-        "generated_at": dt.datetime.now(dt.timezone.utc).isoformat(),
+        "generated_at": now_iso,
         "timezone": "Asia/Taipei",
         "course_count": len(courses),
         "model_names": [x[0] for x in MODELS],
+        "model_metadata": {
+            "ECMWF AIFS": {
+                "model_id": AIFS_MODEL_ID,
+                "native_temporal_resolution": "6-hourly",
+                "display_temporal_resolution": "hourly-interpolated-by-Open-Meteo",
+                "forecast_horizon_days": 15,
+                "limitations": ["no_native_precipitation_probability", "no_native_wind_gusts", "no_uv_index"],
+            }
+        },
+        "model_generated_at": {
+            label: now_iso for label, model in MODELS if model != AIFS_MODEL_ID
+        },
         "courses": {},
         "errors": [],
     }
+    if previous_aifs_time:
+        cache["model_generated_at"]["ECMWF AIFS"] = previous_aifs_time
+
+    # Preserve the last successful AIFS rows when the six-hour cycle is not due,
+    # or when a single course temporarily fails during a refresh.
+    for name, old_entry in (previous.get("courses", {}) if isinstance(previous, dict) else {}).items():
+        if name not in {c["name"] for c in courses}:
+            continue
+        entry = cache["courses"].setdefault(name, {
+            "lat": old_entry.get("lat"), "lon": old_entry.get("lon"), "dates": {}
+        })
+        for date, old_day in old_entry.get("dates", {}).items():
+            old_rows = old_day.get("modelRows", {}).get("ECMWF AIFS")
+            if old_rows:
+                entry["dates"].setdefault(date, {"modelRows": {}, "forecastSource": "六模型獨立來源"})["modelRows"]["ECMWF AIFS"] = old_rows
+
+    models_to_fetch = [x for x in MODELS if x[1] != AIFS_MODEL_ID or refresh_aifs]
     jobs = []
     with concurrent.futures.ThreadPoolExecutor(max_workers=8) as pool:
         for course in courses:
@@ -122,24 +186,31 @@ def main():
                 lat, lon = float(course["lat"]), float(course["lon"])
                 if not (-90 <= lat <= 90 and -180 <= lon <= 180):
                     raise ValueError("invalid coordinates")
-                jobs.extend((course, pool.submit(fetch_model, course, label, model))
-                            for label, model in MODELS)
+                jobs.extend((course, label, pool.submit(fetch_model, course, label, model))
+                            for label, model in models_to_fetch)
             except Exception as exc:
                 cache["errors"].append(f'{course.get("name", "unknown")}: {exc}')
-        for course, future in jobs:
+        aifs_success = 0
+        for course, label, future in jobs:
             name = course["name"]
             entry = cache["courses"].setdefault(name, {
                 "lat": course["lat"], "lon": course["lon"], "dates": {}
             })
             try:
-                label, date_rows = future.result()
+                result_label, date_rows = future.result()
+                if result_label == "ECMWF AIFS":
+                    aifs_success += 1
                 for date, rows in date_rows.items():
-                    entry["dates"].setdefault(date, {"modelRows": {}, "forecastSource": "五組獨立模式"})
-                    entry["dates"][date]["modelRows"][label] = rows
+                    entry["dates"].setdefault(date, {"modelRows": {}, "forecastSource": "六模型獨立來源"})
+                    entry["dates"][date]["modelRows"][result_label] = rows
             except Exception as exc:
-                cache["errors"].append(f"{name}: {exc}")
-    # Validate the near-term default date and retain the cache even if some
-    # individual models fail; the browser can render partial model consensus.
+                cache["errors"].append(f"{name} / {label}: {exc}")
+
+    if refresh_aifs and aifs_success == len(courses):
+        cache["model_generated_at"]["ECMWF AIFS"] = now_iso
+    elif refresh_aifs:
+        cache["errors"].append(f"ECMWF AIFS refresh incomplete: {aifs_success}/{len(courses)} courses; previous AIFS data retained where available")
+
     today_key = today.isoformat()
     usable = sum(1 for c in cache["courses"].values()
                  if len(c["dates"].get(today_key, {}).get("modelRows", {})) > 0)
@@ -148,11 +219,12 @@ def main():
     OUTPUT.parent.mkdir(parents=True, exist_ok=True)
     OUTPUT.write_text(json.dumps(cache, ensure_ascii=False, separators=(",", ":")),
                       encoding="utf-8")
+    aifs_status = "refreshed" if refresh_aifs and aifs_success == len(courses) else "reused"
     print(f"Forecast cache written: {usable}/{len(courses)} courses have today's forecast; "
+          f"AIFS={aifs_status} ({cache['model_generated_at'].get('ECMWF AIFS', 'not yet available')}); "
           f"{len(cache['errors'])} errors; generated_at={cache['generated_at']}")
     if len(cache["courses"]) != 57:
         raise RuntimeError(f"Cache has only {len(cache['courses'])}/57 courses")
-
 
 if __name__ == "__main__":
     main()
