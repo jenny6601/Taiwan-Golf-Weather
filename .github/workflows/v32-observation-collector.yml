@@ -53,7 +53,7 @@ jobs:
 
       - name: Build fresh CWA live snapshot for all 57 golf courses
         env:
-          CWA_API_KEY: \${{ secrets.CWA_API_KEY }}
+          CWA_API_KEY: ${{ secrets.CWA_API_KEY }}
         run: |
           cd source
           python -m scripts.build_live_observations
