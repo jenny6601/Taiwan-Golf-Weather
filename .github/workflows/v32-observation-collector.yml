@@ -69,7 +69,11 @@ jobs:
           assert p.get("course_count")==57, f"Expected 57 courses, got {p.get('course_count')}"
           assert len(p.get("courses",{}))==57, "Snapshot course mapping is incomplete"
           assert p.get("generated_at"), "Snapshot generated_at is missing"
+          coverage=p.get("coverage",{})
+          assert coverage.get("weather_courses",0)>=50, f"Weather station coverage too low: {coverage}"
+          assert coverage.get("rainfall_courses",0)>=50, f"Rainfall station coverage too low: {coverage}"
           print("Verified snapshot:", p["course_count"], "courses")
+          print("CWA station coverage:", coverage)
           print("Generated at:", p["generated_at"])
           PY
 
