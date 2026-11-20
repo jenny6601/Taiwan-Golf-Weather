@@ -24,6 +24,8 @@ jobs:
     steps:
       - name: Checkout V32.2 preview
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -39,7 +41,26 @@ jobs:
           git add data/forecast_cache.json
           if git diff --cached --quiet; then
             echo "Forecast cache unchanged."
-          else
-            git commit -m "Update V32.2 nationwide forecast cache"
-            git push
+            exit 0
           fi
+          git commit -m "Update V32.2 nationwide forecast cache"
+          # Other publishers also write to main. Rebase this generated cache
+          # commit on the latest remote main and retry a normal fast-forward push.
+          # Never force-push main; abort safely if a true file conflict occurs.
+          for attempt in 1 2 3; do
+            echo "Publish attempt ${attempt}/3"
+            git fetch origin main
+            if ! git rebase origin/main; then
+              git rebase --abort || true
+              echo "Rebase conflict detected; refusing to overwrite remote main."
+              exit 1
+            fi
+            if git push origin HEAD:main; then
+              echo "Forecast cache published successfully."
+              exit 0
+            fi
+            echo "Remote main moved during push; retrying after fetch/rebase."
+            sleep 2
+          done
+          echo "Unable to publish forecast cache after 3 safe attempts."
+          exit 1
